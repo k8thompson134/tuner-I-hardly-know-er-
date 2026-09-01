@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "moduleResolution": "bundler",
+    "target": "esnext",
+    "module": "esnext",
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "strict": true,
+    "noEmit": true,
+    // We import Webamp from its source (../../webamp/js/...), same as
+    // webamp-demo does, which pulls its plain-.js modules into our program.
+    "allowJs": true,
+    "allowSyntheticDefaultImports": true,
+    // We import types from webamp's webampLazy.tsx, so tsc needs a jsx mode
+    // even though this package contains no JSX of its own.
+    "jsx": "react-jsx"
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules", "dist"]
+}

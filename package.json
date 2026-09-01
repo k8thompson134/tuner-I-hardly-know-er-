@@ -14,8 +14,7 @@
     "test:all": "npx turbo run test integration-tests",
     "test:unit": "jest",
     "lint": "npx turbo lint",
-    "type-check": "pnpm --filter webamp type-check && pnpm --filter ani-cursor type-check && pnpm --filter skin-database type-check && pnpm --filter webamp-docs type-check && pnpm --filter winamp-eqf type-check",
-    "deploy": "npx turbo build webamp-modern#build --concurrency 1 && mv packages/webamp-modern/build packages/webamp-demo/dist/modern",
+    "type-check": "pnpm --filter webamp type-check && pnpm --filter ani-cursor type-check && pnpm --filter skin-database type-check && pnpm --filter winamp-eqf type-check && pnpm --filter signal-tuner type-check",
     "format": "prettier --write '**/*.{js,ts,tsx}'"
   },
   "devDependencies": {

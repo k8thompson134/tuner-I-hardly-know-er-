@@ -15,16 +15,16 @@
       "dependsOn": ["ani-cursor#build", "winamp-eqf#build"],
       "outputs": ["dist/**"]
     },
-    "webamp-docs#build": {
+    "signal-tuner#build": {
       "dependsOn": ["webamp#build"],
-      "outputs": ["build/**", ".docusaurus/**"]
+      "outputs": ["dist/**"]
     },
     "ani-cursor#type-check": {},
     "winamp-eqf#type-check": {},
     "webamp#type-check": {
       "dependsOn": ["ani-cursor#build", "winamp-eqf#build"]
     },
-    "webamp-docs#type-check": {
+    "signal-tuner#type-check": {
       "dependsOn": ["webamp#build"]
     },
     "skin-database#type-check": {
@@ -43,12 +43,6 @@
       "dependsOn": ["ani-cursor#build", "winamp-eqf#build"],
       "outputs": []
     },
-    "webamp-modern#build": {
-      "outputs": ["build/**"]
-    },
-    "webamp-modern#test": {
-      "outputs": []
-    },
     "skin-database#test": {
       "dependsOn": ["skin-database#grats"],
       "outputs": []
@@ -62,9 +56,6 @@
     },
     "ani-cursor#lint": {},
     "skin-database#lint": {},
-    "skin-museum-og#lint": {},
-    "webamp-docs#lint": {},
-    "webamp-modern#lint": {},
     "winamp-eqf#lint": {},
     "dev": {
       "cache": false,
