@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Signal Tuner</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" type="text/css" href="./css/style.css" />
+  </head>
+  <body>
+    <div id="page">
+      <div id="webamp"></div>
+      <div id="tuner-panel">
+        <div id="status-readout">Loading transmission&hellip;</div>
+        <div id="instructions">
+          Drag the <strong>600</strong> band on the Winamp equalizer to tune.
+          Decoded words appear in the title bar. (170 and 14K are reserved
+          for future transmissions, not wired up yet.)
+        </div>
+      </div>
+    </div>
+    <script type="module" src="./src/main.ts"></script>
+  </body>
+</html>

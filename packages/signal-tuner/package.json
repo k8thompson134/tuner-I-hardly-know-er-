@@ -1,0 +1,20 @@
+{
+  "name": "signal-tuner",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "start": "vite",
+    "build": "vite build",
+    "serve": "vite preview",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "jszip": "^3.10.1",
+    "music-metadata": "^11.6.0",
+    "webamp": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.2",
+    "vite": "^5.2.12"
+  }
+}

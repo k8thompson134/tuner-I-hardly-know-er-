@@ -5,3 +5,7 @@ dist
 
 # Turborepo cache
 .turbo
+
+# Local-only media server project, intentionally not part of this repo.
+# Lives here for convenience; move it out to its own repo when convenient.
+packages/webamp-jukebox/

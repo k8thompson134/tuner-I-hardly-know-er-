@@ -10,8 +10,6 @@ module.exports = {
     "/packages/webamp/",
     "/packages/ani-cursor/",
     "/packages/winamp-eqf/",
-    // TODO: Fix config import so that this can work.
-    "/packages/webamp-modern/src/__tests__/integration*",
   ],
   testEnvironment: "jsdom",
   setupFiles: ["<rootDir>/packages/skin-database/jest-setup.js"],
