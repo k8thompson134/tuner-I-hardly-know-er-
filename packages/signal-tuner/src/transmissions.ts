@@ -17,14 +17,13 @@ export interface Transmission {
   min: number;
   max: number;
   bands: WordBand[];
-  // Loaded onto the player once every band's been decoded - the "unlock
-  // different songs" payoff from CLAUDE.md's content-theme decision.
+  // Loaded onto the player once every band's been decoded.
+  // Part of the game design: the reward for completing a transmission is hearing the song the lyric came from.
   unlockTrack?: UnlockTrack;
 }
 
 // Word-band encoding: the message is split into words, each living in its
-// own frequency range. Tuning into a range reveals that word. See
-// packages/signal-tuner/../../CLAUDE.md for the encoding decision.
+// own frequency range. Tuning into a range reveals that word.
 export const TRANSMISSIONS: Transmission[] = [
   {
     id: "transmission-1",
