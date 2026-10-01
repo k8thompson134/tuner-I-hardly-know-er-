@@ -72,6 +72,12 @@
           <rect x="6" y="7" width="20" height="13" fill="#008080" /><rect x="10" y="10" width="9" height="6" fill="#c0c0c0" /><rect x="10" y="10" width="9" height="2" fill="#000080" />
           <rect x="12" y="23" width="8" height="3" fill="#808080" /><rect x="8" y="26" width="16" height="2" fill="#c0c0c0" />
         </symbol>
+        <symbol id="i-dos" viewBox="0 0 32 32" shape-rendering="crispEdges">
+          <rect x="3" y="5" width="26" height="22" fill="#000" /><rect x="4" y="6" width="24" height="20" fill="#c0c0c0" />
+          <rect x="4" y="6" width="24" height="3" fill="#000080" /><rect x="6" y="11" width="20" height="13" fill="#000" />
+          <rect x="8" y="14" width="2" height="2" fill="#c0c0c0" /><rect x="10" y="16" width="2" height="2" fill="#c0c0c0" /><rect x="8" y="18" width="2" height="2" fill="#c0c0c0" />
+          <rect x="14" y="19" width="6" height="2" fill="#c0c0c0" />
+        </symbol>
         <symbol id="g-min" viewBox="0 0 8 7" shape-rendering="crispEdges"><rect x="1" y="5" width="6" height="2" fill="#000" /></symbol>
         <symbol id="g-close" viewBox="0 0 8 7" shape-rendering="crispEdges">
           <path fill="#000" d="M0 0h2v1h1v1h2V1h1V0h2v1H7v1H6v1H5v1h1v1h1v1h1v1H6V6H5V5H3v1H2v1H0V6h1V5h1V4h1V3H2V2H1V1H0z" />
@@ -117,6 +123,31 @@
         </div>
         <div class="menubar"><span>File</span><span>Edit</span><span>Search</span><span>Help</span></div>
         <div class="field notepad" id="credits-text"></div>
+      </section>
+
+      <section class="os-window raised" id="win-dos" data-title="MS-DOS Prompt" data-icon="i-dos" style="width: 400px" hidden>
+        <div class="titlebar" data-drag>
+          <svg><use href="#i-dos" /></svg><span class="title">MS-DOS Prompt</span>
+          <button type="button" class="btn tb-btn" data-min aria-label="Minimize"><svg><use href="#g-min" /></svg></button>
+          <button type="button" class="btn tb-btn close" data-close aria-label="Close"><svg><use href="#g-close" /></svg></button>
+        </div>
+        <div class="dos" id="dos-screen">
+          <div id="dos-out" role="log" aria-live="polite"></div>
+          <div class="dos-line"><span id="dos-prompt">C:\&gt;</span><input id="dos-input" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Command" /></div>
+        </div>
+      </section>
+
+      <section class="os-window raised" id="win-run" data-title="Run" data-icon="i-file" style="width: 340px" hidden>
+        <div class="titlebar" data-drag>
+          <svg><use href="#i-file" /></svg><span class="title">Run</span>
+          <button type="button" class="btn tb-btn close" data-close aria-label="Close"><svg><use href="#g-close" /></svg></button>
+        </div>
+        <form class="body" id="run-form" autocomplete="off">
+          <div class="run-head"><svg><use href="#i-file" /></svg><p>Type the name of a program, folder, or document, and Signal OS will open it for you.</p></div>
+          <div class="run-row"><label for="run-input">Open:</label><div class="field im-input"><input id="run-input" autocapitalize="off" spellcheck="false" /></div></div>
+          <p class="run-msg" id="run-msg" role="alert" hidden></p>
+          <div class="row-end"><button type="submit" class="btn">OK</button><button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn" disabled>Browse...</button></div>
+        </form>
       </section>
 
       <section class="os-window raised" id="win-im" data-title="ghostfreq_01 - IM" data-icon="i-aim" style="width: 290px" hidden>
@@ -227,9 +258,11 @@
         <button type="button" class="start-item" data-open="win-display"><svg><use href="#i-display" /></svg>Display Properties</button>
         <button type="button" class="start-item" data-open="win-im"><svg><use href="#i-aim" /></svg>Instant Message</button>
         <button type="button" class="start-item" data-open="win-trash"><svg><use href="#i-bin" /></svg>Recycle Bin</button>
+        <button type="button" class="start-item" data-open="win-dos"><svg><use href="#i-dos" /></svg>MS-DOS Prompt</button>
         <button type="button" class="start-item" id="redial-item"><svg><use href="#i-modem" /></svg>Dial-Up Connection</button>
         <button type="button" class="start-item" id="reset-item"><svg><use href="#i-bin" /></svg>Reset Progress...</button>
         <hr class="sep" />
+        <button type="button" class="start-item" data-open="win-run"><svg><use href="#i-file" /></svg>Run...</button>
         <button type="button" class="start-item" id="shutdown-item"><svg><use href="#i-shutdown" /></svg>Shut Down...</button>
       </div>
     </div>

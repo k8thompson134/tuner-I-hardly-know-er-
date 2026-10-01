@@ -65,6 +65,7 @@ export function createDesktop({ winamp }: { winamp: WinampHooks }) {
     win.dataset.min = "";
     activate(win);
     if (phone.matches) win.scrollIntoView({ block: "start" });
+    document.dispatchEvent(new CustomEvent("os:open", { detail: id }));
   }
 
   function closeWin(win: HTMLElement) {
@@ -327,6 +328,8 @@ export function createDesktop({ winamp }: { winamp: WinampHooks }) {
     place("win-credits", 200, 90);
     place("win-letter", w - 340, 130);
     place("win-im", Math.max(700, w - 330), Math.max(60, desktop.clientHeight - 330));
+    place("win-dos", 120, 110);
+    place("win-run", 8, Math.max(60, desktop.clientHeight - 190));
   };
   placeShellWindows();
   // Crossing the phone breakpoint (rotating, resizing) must place windows

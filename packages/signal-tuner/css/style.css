@@ -451,6 +451,60 @@ hr.sep {
   user-select: text;
 }
 
+/* ---------- MS-DOS Prompt and Run ---------- */
+
+.dos {
+  background: #000;
+  color: #c0c0c0;
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.35;
+  height: 240px;
+  overflow-y: auto;
+  padding: 4px 6px;
+  user-select: text;
+  cursor: text;
+}
+#dos-out > div {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.dos-line {
+  display: flex;
+}
+#dos-input {
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  color: inherit;
+  border: 0;
+  outline: 0;
+  font: inherit;
+  padding: 0;
+}
+.run-head {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+.run-head svg {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+}
+.run-head p {
+  margin: 0;
+}
+.run-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.run-msg {
+  margin: 0;
+  color: #800000;
+}
+
 /* ---------- Dialogs, forms, instant message ---------- */
 
 .body {

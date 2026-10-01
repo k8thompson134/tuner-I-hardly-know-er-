@@ -22,6 +22,7 @@ import {
 import { createDesktop } from "./shell/desktop";
 import { createDialup } from "./shell/dialup";
 import { createProgress } from "./progress";
+import { createPrograms } from "./shell/programs";
 import { remove } from "./storage";
 import { STORY_KEY } from "./shell/narrative";
 import { createDisplayProperties } from "./shell/display";
@@ -149,6 +150,7 @@ async function main() {
     "\n\nCC BY 4.0: https://creativecommons.org/licenses/by/4.0/\n" +
     "Kevin MacLeod: https://incompetech.com";
   const narrative = createNarrative(desktop);
+  createPrograms(desktop, narrative);
   const dialup = createDialup({
     onConnected: narrative.connect,
     showWindow: desktop.open,

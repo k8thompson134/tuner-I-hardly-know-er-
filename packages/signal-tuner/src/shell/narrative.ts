@@ -222,6 +222,11 @@ export function createNarrative(desktop: NarrativeDesktop) {
   // --- Public ------------------------------------------------------------------
 
   return {
+    // Something ghostfreq says about what the player just did, once ever.
+    remark(key: string, text: string, delay = 800) {
+      if (online) sayOnce(`remark:${key}`, text, delay);
+    },
+
     // The player has connected: the buddy comes online.
     connect() {
       if (online) return;
