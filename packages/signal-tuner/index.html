@@ -226,6 +226,7 @@
               <label class="check"><input type="checkbox" id="opt-crt" /> CRT scanlines and glow</label>
               <label class="check"><input type="checkbox" id="opt-dawn" checked /> Dawn creeps in as you decode</label>
               <label class="check"><input type="checkbox" id="opt-sound" checked /> System sounds</label>
+              <label class="check"><input type="checkbox" id="opt-saver" checked /> Screen saver after a minute of no input</label>
               <div class="hint">Dawn: the sky lightens and the clock runs from 3:14 toward 4 AM with every word you find.</div>
             </div>
           </div>
@@ -294,6 +295,8 @@
       <hr class="sep" />
       <button type="button" data-act="props">Properties</button>
     </div>
+
+    <div id="saver" hidden aria-hidden="true"><canvas></canvas></div>
 
     <div id="crt"></div>
 

@@ -13,6 +13,7 @@ interface Prefs {
   crt: boolean;
   dawn: boolean;
   sound: boolean;
+  saver: boolean;
 }
 
 const DEFAULTS: Prefs = {
@@ -23,6 +24,7 @@ const DEFAULTS: Prefs = {
   crt: false,
   dawn: true,
   sound: true,
+  saver: true,
 };
 
 function load(): Prefs {
@@ -60,6 +62,7 @@ export function createDisplayProperties({ close }: { close: (id: string) => void
     root.dataset.font = prefs.font;
     root.dataset.crt = prefs.crt ? "on" : "off";
     root.dataset.dawn = prefs.dawn ? "on" : "off";
+    root.dataset.saver = prefs.saver ? "on" : "off";
     setSoundEnabled(prefs.sound);
 
     document
@@ -71,6 +74,7 @@ export function createDisplayProperties({ close }: { close: (id: string) => void
     byId<HTMLInputElement>("opt-crt").checked = prefs.crt;
     byId<HTMLInputElement>("opt-dawn").checked = prefs.dawn;
     byId<HTMLInputElement>("opt-sound").checked = prefs.sound;
+    byId<HTMLInputElement>("opt-saver").checked = prefs.saver;
   }
 
   document.querySelectorAll<HTMLElement>("#wp-list [data-wp]").forEach((d) => {
@@ -94,6 +98,7 @@ export function createDisplayProperties({ close }: { close: (id: string) => void
     ["opt-crt", "crt"],
     ["opt-dawn", "dawn"],
     ["opt-sound", "sound"],
+    ["opt-saver", "saver"],
   ] as const) {
     byId<HTMLInputElement>(id).onchange = (e) => {
       prefs[key] = (e.target as HTMLInputElement).checked;

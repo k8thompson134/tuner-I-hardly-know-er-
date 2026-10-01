@@ -24,6 +24,7 @@ import { createDialup } from "./shell/dialup";
 import { createProgress } from "./progress";
 import { createPrograms } from "./shell/programs";
 import { createNotepad } from "./shell/notepad";
+import { createSaver } from "./shell/saver";
 import { remove } from "./storage";
 import { STORY_KEY } from "./shell/narrative";
 import { createDisplayProperties } from "./shell/display";
@@ -416,6 +417,7 @@ async function main() {
   );
 
   startTx(resumeIndex);
+  createSaver({ solved: () => completedTransmissions.size });
 
   window.addEventListener("resize", layoutPlayer);
   dialup.start();
