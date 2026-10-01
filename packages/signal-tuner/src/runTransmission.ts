@@ -38,6 +38,8 @@ export interface RunTransmissionOptions {
   // Shown after the fanfare, then the marquee is released so the reward
   // song's title scrolls.
   completeHint?: string;
+  // Band ids already found, from an earlier visit.
+  decodedBandIds?: string[];
   onDecode?: (word: string, decodedCount: number) => void;
   onLockedBand?: (word: string | null) => void;
   onLockProgress?: (band: WordBand | null, progress: number) => void;
@@ -87,6 +89,7 @@ export function runTransmission(
     proximityFeedback = false,
     introHint,
     completeHint,
+    decodedBandIds,
     onDecode,
     onLockedBand,
     onLockProgress,
@@ -323,7 +326,7 @@ export function runTransmission(
         unlockTrack(webamp, trackIndex, transmission.unlockTrack);
       }
     },
-  });
+  }, decodedBandIds);
 
   // Seed interference layers with current slider values and subscribe to movements
   const layerUnsubscribes = (transmission.layers ?? []).map((layer) => {

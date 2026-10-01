@@ -56,10 +56,15 @@ export class SignalTunerGame {
   private lockTimerId: ReturnType<typeof setTimeout> | null = null;
   private lockAnimId: number | null = null;
 
-  constructor(transmission: Transmission, events: SignalTunerGameEvents) {
+  constructor(
+    transmission: Transmission,
+    events: SignalTunerGameEvents,
+    decodedBandIds: string[] = []
+  ) {
     this.transmission = transmission;
     this.events = events;
     this.frequency = transmission.min;
+    this.decodedBandIds = new Set(decodedBandIds);
   }
 
   setLayerValue(band: EqBand, value: number): void {

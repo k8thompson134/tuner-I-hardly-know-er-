@@ -1029,6 +1029,30 @@ export function unlockTrack(
   );
 }
 
+// Puts an already-earned song on its row at page load. Unlike unlockTrack it
+// doesn't play or fetch the file; that waits until the row is played.
+export function restoreUnlockedTrack(
+  webamp: WebampLazy,
+  index: number,
+  track: UnlockTrack
+): void {
+  const oldId = webamp.store.getState().playlist.trackOrder[index];
+  if (oldId != null) {
+    webamp.store.dispatch({ type: "REMOVE_TRACKS", ids: [oldId] });
+  }
+  webamp.store.dispatch(
+    loadMediaFile(
+      {
+        url: track.url,
+        duration: track.lengthSeconds,
+        metaData: { artist: track.artist, title: track.title },
+      },
+      "NONE",
+      index
+    )
+  );
+}
+
 // A tiny silent WAV, used as the url for rows that aren't unlocked yet so
 // Webamp never fetches (or plays) the real song before it's earned.
 let silentUrl: string | null = null;

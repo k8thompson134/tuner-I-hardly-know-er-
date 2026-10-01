@@ -5,6 +5,7 @@ import { EQ_LAYOUT, HIDE_EQ_EXTRAS } from "./cosmetics";
 import type { EqBand } from "./webampAdapter";
 import {
   clearMarqueeMessage,
+  restoreUnlockedTrack,
   createReadoutKeeper,
   enableManualTuning,
   lockWindowDragOnTouch,
@@ -20,6 +21,9 @@ import {
 } from "./webampAdapter";
 import { createDesktop } from "./shell/desktop";
 import { createDialup } from "./shell/dialup";
+import { createProgress } from "./progress";
+import { remove } from "./storage";
+import { STORY_KEY } from "./shell/narrative";
 import { createDisplayProperties } from "./shell/display";
 import { createNarrative } from "./shell/narrative";
 import {
@@ -150,6 +154,13 @@ async function main() {
     showWindow: desktop.open,
     hideWindow: desktop.close,
   });
+  (document.getElementById("reset-item") as HTMLElement).onclick = () => {
+    desktop.closeStart();
+    if (!confirm("Erase every decoded transmission and start over?")) return;
+    savedProgress.reset();
+    remove(STORY_KEY);
+    location.reload();
+  };
   (document.getElementById("redial-item") as HTMLElement).onclick = () => {
     desktop.closeStart();
     dialup.redial();
@@ -167,25 +178,43 @@ async function main() {
     duration: tx.unlockTrack?.lengthSeconds ?? 180,
   }));
   webamp.appendTracks(initialTracks);
-  TRANSMISSIONS.forEach((tx, idx) =>
-    readouts.setTrackLabel(idx, transmissionTrackLabel(tx))
-  );
+  const savedProgress = createProgress(TRANSMISSIONS);
+  TRANSMISSIONS.forEach((tx, idx) => {
+    if (savedProgress.isCompleted(tx.id) && tx.unlockTrack != null) {
+      restoreUnlockedTrack(webamp, idx, tx.unlockTrack);
+      readouts.setTrackLabel(idx, {
+        artist: tx.unlockTrack.artist,
+        title: tx.unlockTrack.title,
+      });
+    } else {
+      const found = new Set(savedProgress.decodedBands(tx.id));
+      readouts.setTrackLabel(
+        idx,
+        transmissionTrackLabel(tx, (b) => found.has(b.id))
+      );
+    }
+  });
+  // Pick up at the first transmission still to solve.
+  const firstUnsolved = TRANSMISSIONS.findIndex((t) => !savedProgress.isCompleted(t.id));
+  const resumeIndex = firstUnsolved === -1 ? TRANSMISSIONS.length - 1 : firstUnsolved;
 
   const initialPlaylistState = webamp.store.getState();
   if (initialPlaylistState.playlist.trackOrder.length > 0) {
     webamp.store.dispatch({
       type: "BUFFER_TRACK",
-      id: initialPlaylistState.playlist.trackOrder[0],
+      id: initialPlaylistState.playlist.trackOrder[resumeIndex],
     });
   }
 
-  let currentTxIndex = 0;
+  let currentTxIndex = resumeIndex;
   let isUncleared = false;
   let currentUnclearedNames: string[] = [];
   let currentLockedWord: string | null = null;
   let currentLockBand: WordBand | null = null;
   let currentLockProgress: number = 0;
-  const completedTransmissions = new Set<number>();
+  const completedTransmissions = new Set<number>(
+    TRANSMISSIONS.flatMap((t, i) => (savedProgress.isCompleted(t.id) ? [i] : []))
+  );
 
   const updateStatusDisplay = () => {
     const tx = TRANSMISSIONS[currentTxIndex];
@@ -208,7 +237,15 @@ async function main() {
 
   // Night clock on the player's time digits: 3:14 AM, two minutes later for
   // every word found across all transmissions.
-  const wordsFound = new Set<string>();
+  const wordsFound = new Set<string>(
+    TRANSMISSIONS.flatMap((t, i) =>
+      t.bands
+        .filter(
+          (b) => savedProgress.isCompleted(t.id) || savedProgress.decodedBands(t.id).includes(b.id)
+        )
+        .map((b) => `${i}:${b.word}`)
+    )
+  );
   const totalWords = TRANSMISSIONS.reduce((n, t) => n + t.bands.length, 0);
   const dawn = document.getElementById("dawn") as HTMLElement;
   const showClock = () => {
@@ -252,6 +289,10 @@ async function main() {
       readouts,
       proximityFeedback: true,
       introHint: TRANSMISSION_HINTS[index],
+      // A solved transmission replays from scratch.
+      decodedBandIds: completedTransmissions.has(index)
+        ? []
+        : savedProgress.decodedBands(transmission.id),
       completeHint:
         index < TRANSMISSIONS.length - 1
           ? "[OK] DECODED  *  PRESS >>| FOR NEXT TRANSMISSION"
@@ -281,6 +322,12 @@ async function main() {
           total: transmission.bands.length,
         });
         const game = runningTx?.game;
+        if (game != null && !completedTransmissions.has(index)) {
+          savedProgress.setDecoded(
+            transmission.id,
+            transmission.bands.filter((b) => game.isBandDecoded(b.id)).map((b) => b.id)
+          );
+        }
         const line = transmissionTrackLabel(transmission, (b) =>
           game ? game.isBandDecoded(b.id) : false
         ).title;
@@ -289,6 +336,7 @@ async function main() {
       onComplete: () => {
         const firstTime = !completedTransmissions.has(index);
         completedTransmissions.add(index);
+        savedProgress.complete(transmission.id);
         if (firstTime) {
           narrative.onGameEvent({
             type: "complete",
@@ -363,8 +411,7 @@ async function main() {
     }
   );
 
-  // Start with Transmission 1 (Tutorial)
-  startTx(0);
+  startTx(resumeIndex);
 
   window.addEventListener("resize", layoutPlayer);
   dialup.start();

@@ -3,6 +3,23 @@
 
 import { BUDDY, LETTERS } from "./story";
 import { doorClose, doorOpen, imBlip } from "./sfx";
+import { load, save } from "../storage";
+
+export const STORY_KEY = "signal-os-story";
+const MAX_LOG = 200;
+
+interface LogLine {
+  cls: string;
+  who: string;
+  text: string;
+}
+
+interface SavedStory {
+  said: string[];
+  log: LogLine[];
+  bins: number;
+  signedOff: boolean;
+}
 
 export interface NarrativeDesktop {
   notify(id: string): void;
@@ -24,15 +41,27 @@ export function createNarrative(desktop: NarrativeDesktop) {
   const letterTitle = document.getElementById("letter-title") as HTMLElement;
   const letterText = document.getElementById("letter-text") as HTMLElement;
 
+  const saved = load<Partial<SavedStory> | null>(STORY_KEY, null) ?? {};
+  const savedLog = (Array.isArray(saved.log) ? saved.log : []).filter(
+    (l) => typeof l?.text === "string" && typeof l?.who === "string" && typeof l?.cls === "string"
+  );
+
   let online = false;
-  let signedOff = false;
+  let signedOff = saved.signedOff === true;
   let lastProgressAt = 0;
-  const said = new Set<string>();
+  // `said` also holds lines still waiting to appear; only `delivered` is saved,
+  // so a reload while one is pending doesn't lose it.
+  const said = new Set<string>(Array.isArray(saved.said) ? saved.said : []);
+  const delivered = new Set<string>(said);
   let binCount = 0;
+  const logLines: LogLine[] = savedLog.slice(-MAX_LOG);
+
+  const persist = () =>
+    save(STORY_KEY, { said: [...delivered], log: logLines, bins: binCount, signedOff });
 
   // --- Instant messages ------------------------------------------------------
 
-  function append(cls: string, who: string, text: string) {
+  function render(cls: string, who: string, text: string) {
     const row = document.createElement("div");
     if (who) {
       const name = document.createElement("span");
@@ -47,11 +76,21 @@ export function createNarrative(desktop: NarrativeDesktop) {
     log.scrollTop = log.scrollHeight;
   }
 
-  function say(text: string, delay = 0) {
+  function append(cls: string, who: string, text: string) {
+    render(cls, who, text);
+    logLines.push({ cls, who, text });
+    if (logLines.length > MAX_LOG) logLines.shift();
+    persist();
+  }
+
+  logLines.forEach((l) => render(l.cls, l.who, l.text));
+
+  function say(text: string, delay = 0, key?: string) {
     setTimeout(() => {
       if (signedOff) return;
       if (log.children.length === 0) doorOpen();
       else imBlip();
+      if (key != null) delivered.add(key);
       append("them", BUDDY.name, text);
       desktop.notify("win-im");
     }, delay);
@@ -60,7 +99,7 @@ export function createNarrative(desktop: NarrativeDesktop) {
   const sayOnce = (key: string, text: string, delay = 0) => {
     if (said.has(key)) return;
     said.add(key);
-    say(text, delay);
+    say(text, delay, key);
   };
 
   form.addEventListener("submit", (e) => {
@@ -114,12 +153,16 @@ export function createNarrative(desktop: NarrativeDesktop) {
   function addLetter() {
     if (binCount < LETTERS.length) {
       binCount++;
+      persist();
       renderBin();
       desktop.notify("win-trash");
     }
   }
 
-  binCount = 1;
+  binCount =
+    typeof saved.bins === "number" && saved.bins >= 1 && saved.bins <= LETTERS.length
+      ? Math.floor(saved.bins)
+      : 1;
   renderBin();
 
   // --- Public ------------------------------------------------------------------
@@ -157,6 +200,7 @@ export function createNarrative(desktop: NarrativeDesktop) {
             doorClose();
             append("sys", "", BUDDY.signOff);
             signedOff = true;
+            persist();
           }, 6000);
         }
       }
