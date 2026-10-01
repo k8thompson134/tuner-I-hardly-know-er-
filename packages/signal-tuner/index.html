@@ -115,6 +115,16 @@
         <div class="field notepad" id="letter-text"></div>
       </section>
 
+      <section class="os-window raised" id="win-note" data-title="Untitled - Notepad" data-icon="i-notepad" style="width: 320px" hidden>
+        <div class="titlebar" data-drag>
+          <svg><use href="#i-notepad" /></svg><span class="title">Untitled - Notepad</span>
+          <button type="button" class="btn tb-btn" data-min aria-label="Minimize"><svg><use href="#g-min" /></svg></button>
+          <button type="button" class="btn tb-btn close" data-close aria-label="Close"><svg><use href="#g-close" /></svg></button>
+        </div>
+        <div class="menubar"><span>File</span><span>Edit</span><span>Search</span><span>Help</span></div>
+        <textarea class="field notepad-edit" id="note-text" rows="10" maxlength="5000" spellcheck="false" aria-label="Notepad"></textarea>
+      </section>
+
       <section class="os-window raised" id="win-credits" data-title="Music Credits" data-icon="i-notepad" style="width: 380px" hidden>
         <div class="titlebar" data-drag>
           <svg><use href="#i-notepad" /></svg><span class="title">credits.txt - Notepad</span>
@@ -258,6 +268,7 @@
         <button type="button" class="start-item" data-open="win-display"><svg><use href="#i-display" /></svg>Display Properties</button>
         <button type="button" class="start-item" data-open="win-im"><svg><use href="#i-aim" /></svg>Instant Message</button>
         <button type="button" class="start-item" data-open="win-trash"><svg><use href="#i-bin" /></svg>Recycle Bin</button>
+        <button type="button" class="start-item" data-open="win-note"><svg><use href="#i-notepad" /></svg>Notepad</button>
         <button type="button" class="start-item" data-open="win-dos"><svg><use href="#i-dos" /></svg>MS-DOS Prompt</button>
         <button type="button" class="start-item" id="redial-item"><svg><use href="#i-modem" /></svg>Dial-Up Connection</button>
         <button type="button" class="start-item" id="reset-item"><svg><use href="#i-bin" /></svg>Reset Progress...</button>

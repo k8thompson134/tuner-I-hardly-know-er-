@@ -329,6 +329,7 @@ export function createDesktop({ winamp }: { winamp: WinampHooks }) {
     place("win-letter", w - 340, 130);
     place("win-im", Math.max(700, w - 330), Math.max(60, desktop.clientHeight - 330));
     place("win-dos", 120, 110);
+    place("win-note", 220, 140);
     place("win-run", 8, Math.max(60, desktop.clientHeight - 190));
   };
   placeShellWindows();

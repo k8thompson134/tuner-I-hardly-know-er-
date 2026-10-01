@@ -4,6 +4,7 @@
 import { BUDDY, KEYWORDS, LETTERS, QUESTIONS } from "./story";
 import { doorClose, doorOpen, imBlip } from "./sfx";
 import { load, save } from "../storage";
+import { loadNote } from "./notepad";
 
 export const STORY_KEY = "signal-os-story-2";
 const MAX_LOG = 200;
@@ -259,6 +260,11 @@ export function createNarrative(desktop: NarrativeDesktop) {
         persist();
         const lines = BUDDY.complete;
         sayOnce(`done${event.transmission}`, lines[Math.min(event.transmission, lines.length - 1)], 1400);
+        // An Act 2 tell: it has been reading the Notepad.
+        const note = loadNote().split("\n").map((l) => l.trim()).find((l) => l !== "");
+        if (event.transmission >= 2 && note != null) {
+          sayOnce("notepad", `i read ur notepad. sorry. it was just open. "${note.slice(0, 40)}"`, 4200);
+        }
         ask(event.transmission, 4500);
       }
     },

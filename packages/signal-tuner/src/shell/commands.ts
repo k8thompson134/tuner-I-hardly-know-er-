@@ -188,6 +188,9 @@ export function runDos(input: string, clock: string): DosResult {
       return { lines: ["Opening ghostfreq_01..."], open: "win-im" };
     case "winamp":
       return { lines: ["Starting Signal Tuner..."], open: "winamp" };
+    case "notepad":
+    case "edit":
+      return { lines: ["Opening Notepad..."], open: "win-note" };
     default:
       return { lines: ["Bad command or file name"] };
   }
@@ -208,6 +211,8 @@ const OPENS: Record<string, string> = {
   command: "win-dos",
   dos: "win-dos",
   "ms-dos": "win-dos",
+  notepad: "win-note",
+  edit: "win-note",
   winamp: "winamp",
   signal: "winamp",
   tuner: "winamp",
