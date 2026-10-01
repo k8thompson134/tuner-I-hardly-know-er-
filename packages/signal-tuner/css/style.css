@@ -867,7 +867,7 @@ select.field {
     min-height: 60px;
   }
 
-  /* Webamp scaling for mobile - make it prominent and big */
+  /* Webamp scaling for mobile - aggressive sizing for usability */
   #webamp-mount {
     position: relative;
     inset: auto;
@@ -875,7 +875,8 @@ select.field {
     max-width: 100%;
     height: auto;
     aspect-ratio: 275 / 348;
-    min-height: 360px;
+    min-height: 85vh;
+    /* Ensures Webamp takes most of the visible space */
     flex-shrink: 0;
     -webkit-user-select: none;
     user-select: none;
@@ -993,12 +994,22 @@ select.field {
     -webkit-user-select: text;
     user-select: text;
   }
+
+  /* Enlarge Webamp's slider controls for mobile precision */
+  /* Target Webamp's internal slider/knob classes */
+  [class*="slider"], [class*="Slider"],
+  [class*="vSlider"], [class*="hSlider"],
+  input[type="range"] {
+    min-height: 24px !important;
+    min-width: 24px !important;
+  }
 }
 
 /* Ultra-small screens: 375px and below */
 @media (max-width: 375px) {
   #webamp-mount {
-    min-height: 300px;
+    min-height: 80vh;
+    /* Keep Webamp big even on smallest phones */
   }
 
   .os-window {
