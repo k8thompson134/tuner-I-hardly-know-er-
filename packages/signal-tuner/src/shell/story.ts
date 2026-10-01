@@ -156,6 +156,20 @@ export const BUDDY = {
   ],
   // An Act 2 tell: it notices a wallpaper change it was never told about.
   wallpaper: (wp: string) => `ooh i like the ${WALLPAPER_NAMES[wp] ?? "new one"}`,
+  // Reactions to the hidden things on the desktop (shell/eggs.ts and
+  // shell/commands.ts). Each is said once; the key is what triggers it.
+  remarks: {
+    "dos-1420": "...how do u know that name",
+    ping: "did u just ping me. rude. (hi)",
+    format: "pls no. my drafts are on there",
+    konami: "...ur pressing buttons in a pattern. is that a cheat code. teach me",
+    brb: "they always say that",
+    clock: "stop. it's not 4 yet. i'm not ready",
+    emptybin: "NOT THE DRAFTS",
+    emptybinBack: "ok i put them back. don't do that",
+  } as Record<string, string>,
+  // After the third transmission, about the first line in the Notepad.
+  notepad: (line: string) => `i read ur notepad. sorry. it was just open. "${line}"`,
   idle: "still there?",
   away: "ghostfreq_01 is away: same time tomorrow",
   replies: [

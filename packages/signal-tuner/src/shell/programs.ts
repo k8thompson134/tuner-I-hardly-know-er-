@@ -14,7 +14,7 @@ export interface ProgramsDesktop {
 }
 
 export interface ProgramsNarrative {
-  remark(key: string, text: string, delay?: number): void;
+  remark(key: string, delay?: number): void;
 }
 
 const MAX_LINES = 300;
@@ -56,7 +56,7 @@ export function createPrograms(desktop: ProgramsDesktop, narrative: ProgramsNarr
     if (result.clear) out.replaceChildren();
     print(result.lines);
     if (result.remark != null) {
-      narrative.remark(result.remark.key, result.remark.text, 1500);
+      narrative.remark(result.remark, 1500);
     }
     if (result.open != null) desktop.open(result.open);
     if (result.exit) desktop.close("win-dos");

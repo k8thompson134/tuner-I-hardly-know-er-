@@ -14,8 +14,8 @@ export interface DosResult {
   exit?: boolean;
   // A window for the desktop to open.
   open?: string;
-  // Something ghostfreq says about it, once.
-  remark?: { key: string; text: string };
+  // A key into BUDDY.remarks (story.ts): what ghostfreq says about it, once.
+  remark?: string;
 }
 
 const HYDROGEN = [
@@ -142,20 +142,20 @@ export function runDos(input: string, clock: string): DosResult {
       const file = FILES[name];
       if (file == null) return { lines: ["File not found - " + args[0].toUpperCase()] };
       return name === "1420.dat"
-        ? { lines: file, remark: { key: "dos-1420", text: "...how do u know that name" } }
+        ? { lines: file, remark: "dos-1420" }
         : { lines: file };
     }
     case "1420":
       return {
         lines: HYDROGEN,
-        remark: { key: "dos-1420", text: "...how do u know that name" },
+        remark: "dos-1420",
       };
     case "ping":
       if (arg == null) return { lines: ["Usage: ping hostname"] };
       if (isGhost(arg)) {
         return {
           lines: PING_GHOST,
-          remark: { key: "ping", text: "did u just ping me. rude. (hi)" },
+          remark: "ping",
         };
       }
       if (arg === "localhost" || arg === "127.0.0.1") {
@@ -175,7 +175,7 @@ export function runDos(input: string, clock: string): DosResult {
     case "format":
       return {
         lines: ["Cannot format drive C:. The drive is in use by ghostfreq_01."],
-        remark: { key: "format", text: "pls no. my drafts are on there" },
+        remark: "format",
       };
     case "del":
     case "erase":

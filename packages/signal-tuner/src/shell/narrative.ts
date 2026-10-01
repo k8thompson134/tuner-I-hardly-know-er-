@@ -229,16 +229,17 @@ export function createNarrative(desktop: NarrativeDesktop) {
       if (binCount === 0) return;
       binList.replaceChildren();
       binStatus.textContent = "0 object(s)";
-      if (online) sayOnce("emptybin", "NOT THE DRAFTS", 400);
+      this.remark("emptybin", 400);
       window.setTimeout(() => {
         renderBin();
-        if (online) sayOnce("emptybin-back", "ok i put them back. don't do that", 600);
+        this.remark("emptybinBack", 600);
       }, 3500);
     },
 
     // Something ghostfreq says about what the player just did, once ever.
-    remark(key: string, text: string, delay = 800) {
-      if (online) sayOnce(`remark:${key}`, text, delay);
+    remark(key: string, delay = 800) {
+      const text = BUDDY.remarks[key];
+      if (online && text != null) sayOnce(`remark:${key}`, text, delay);
     },
 
     // The player has connected: the buddy comes online.
@@ -276,7 +277,7 @@ export function createNarrative(desktop: NarrativeDesktop) {
         // An Act 2 tell: it has been reading the Notepad.
         const note = loadNote().split("\n").map((l) => l.trim()).find((l) => l !== "");
         if (event.transmission >= 2 && note != null) {
-          sayOnce("notepad", `i read ur notepad. sorry. it was just open. "${note.slice(0, 40)}"`, 4200);
+          sayOnce("notepad", BUDDY.notepad(note.slice(0, 40)), 4200);
         }
         ask(event.transmission, 4500);
       }

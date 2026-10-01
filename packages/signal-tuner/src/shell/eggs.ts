@@ -6,7 +6,7 @@ export interface EggsDesktop {
 }
 
 export interface EggsNarrative {
-  remark(key: string, text: string, delay?: number): void;
+  remark(key: string, delay?: number): void;
   emptyBin(): void;
 }
 
@@ -60,7 +60,7 @@ export function createEggs(
     if (keys.length > KONAMI.length) keys.shift();
     if (keys.join() === KONAMI.join()) {
       glitch();
-      narrative.remark("konami", "...ur pressing buttons in a pattern. is that a cheat code. teach me", 900);
+      narrative.remark("konami", 900);
     }
 
     if (key.length === 1) {
@@ -74,7 +74,7 @@ export function createEggs(
         programs.runDos("1420");
       } else if (typed.endsWith("brb")) {
         typed = "";
-        narrative.remark("brb", "they always say that", 600);
+        narrative.remark("brb", 600);
       }
     }
   });
@@ -90,7 +90,7 @@ export function createEggs(
     clicks = [];
     const was = clock.textContent;
     clock.textContent = "4:00 AM";
-    narrative.remark("clock", "stop. it's not 4 yet. i'm not ready", 700);
+    narrative.remark("clock", 700);
     window.setTimeout(() => {
       if (clock.textContent === "4:00 AM") clock.textContent = was;
     }, 2500);
