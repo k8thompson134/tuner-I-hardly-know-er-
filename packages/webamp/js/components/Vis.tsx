@@ -176,12 +176,10 @@ export default function Vis({ analyser }: Props) {
       animationRequest = window.requestAnimationFrame(loop);
     };
 
-    if (audioStatus === MEDIA_STATUS.PLAYING) {
-      if (mode === VISUALIZERS.NONE) {
-        canvasCtx.clearRect(0, 0, renderWidthBG, height);
-      } else {
-        loop();
-      }
+    if (mode === VISUALIZERS.NONE) {
+      canvasCtx.clearRect(0, 0, renderWidthBG, height);
+    } else {
+      loop();
     }
 
     return () => {
@@ -190,10 +188,6 @@ export default function Vis({ analyser }: Props) {
       }
     };
   }, [audioStatus, canvas, painter, bgCanvas, renderWidthBG, height, mode]);
-
-  if (audioStatus === MEDIA_STATUS.STOPPED) {
-    return null;
-  }
 
   return (
     <canvas
