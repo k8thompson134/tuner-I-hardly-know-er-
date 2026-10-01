@@ -1,0 +1,6 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "vite",
+  "buildCommand": "pnpm --filter ani-cursor build && pnpm --filter winamp-eqf build && pnpm build",
+  "outputDirectory": "dist"
+}
