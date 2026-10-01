@@ -1,3 +1,5 @@
+> **This fork** adds [Signal Tuner](./packages/signal-tuner), a signal decoder game played inside a Webamp player on a fake Windows 98 desktop. The rest of this README is Webamp's own.
+
 [![gzip size](https://img.badgesize.io/https:/unpkg.com/webamp/built/webamp.lazy-bundle.min.js?label=gzip&compression=gzip)](https://bundlephobia.com/result?p=webamp)
 [![Discord](https://img.shields.io/discord/434058775012311061.svg)](https://webamp.org/chat)
 
