@@ -867,7 +867,7 @@ select.field {
     min-height: 60px;
   }
 
-  /* Webamp scaling for mobile */
+  /* Webamp scaling for mobile - make it prominent and big */
   #webamp-mount {
     position: relative;
     inset: auto;
@@ -875,6 +875,7 @@ select.field {
     max-width: 100%;
     height: auto;
     aspect-ratio: 275 / 348;
+    min-height: 360px;
     flex-shrink: 0;
     -webkit-user-select: none;
     user-select: none;
@@ -997,7 +998,7 @@ select.field {
 /* Ultra-small screens: 375px and below */
 @media (max-width: 375px) {
   #webamp-mount {
-    max-height: 320px;
+    min-height: 300px;
   }
 
   .os-window {
