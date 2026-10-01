@@ -897,7 +897,8 @@ select.field {
 
 /* ---------- Right-click menu ---------- */
 
-#ctx {
+#ctx,
+#ctx-bin {
   position: fixed;
   z-index: 10002;
   padding: 3px;
@@ -905,7 +906,8 @@ select.field {
   display: flex;
   flex-direction: column;
 }
-#ctx button {
+#ctx button,
+#ctx-bin button {
   font: inherit;
   color: inherit;
   background: none;
@@ -913,9 +915,27 @@ select.field {
   text-align: left;
   padding: 3px 20px;
 }
-#ctx button:hover {
+#ctx button:hover,
+#ctx-bin button:hover {
   background: var(--highlight);
   color: #ffffff;
+}
+
+/* The Konami code. */
+#desktop.glitch {
+  animation: desktop-glitch 0.7s steps(7);
+}
+@keyframes desktop-glitch {
+  0%, 100% { filter: none; transform: none; }
+  20% { filter: hue-rotate(90deg) saturate(2); transform: translate(-3px, 1px); }
+  40% { filter: invert(1); transform: translate(3px, -1px) skewX(2deg); }
+  60% { filter: hue-rotate(200deg); transform: translate(-2px, 0); }
+  80% { filter: none; transform: translate(1px, 1px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  #desktop.glitch {
+    animation: none;
+  }
 }
 
 /* ---------- Shut down ---------- */

@@ -25,6 +25,7 @@ import { createProgress } from "./progress";
 import { createPrograms } from "./shell/programs";
 import { createNotepad } from "./shell/notepad";
 import { createSaver } from "./shell/saver";
+import { createEggs } from "./shell/eggs";
 import { remove } from "./storage";
 import { STORY_KEY } from "./shell/narrative";
 import { createDisplayProperties } from "./shell/display";
@@ -152,7 +153,8 @@ async function main() {
     "\n\nCC BY 4.0: https://creativecommons.org/licenses/by/4.0/\n" +
     "Kevin MacLeod: https://incompetech.com";
   const narrative = createNarrative(desktop);
-  createPrograms(desktop, narrative);
+  const programs = createPrograms(desktop, narrative);
+  createEggs(desktop, narrative, programs);
   createNotepad();
   const dialup = createDialup({
     onConnected: narrative.connect,

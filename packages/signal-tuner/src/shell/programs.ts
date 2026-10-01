@@ -117,4 +117,12 @@ export function createPrograms(desktop: ProgramsDesktop, narrative: ProgramsNarr
       runInput.select();
     }
   });
+
+  return {
+    // Opens the prompt and runs a command in it, as if it had been typed.
+    runDos(command: string) {
+      desktop.open("win-dos");
+      runCommand(command);
+    },
+  };
 }

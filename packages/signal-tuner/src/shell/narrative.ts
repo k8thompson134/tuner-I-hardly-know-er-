@@ -223,6 +223,19 @@ export function createNarrative(desktop: NarrativeDesktop) {
   // --- Public ------------------------------------------------------------------
 
   return {
+    // The player emptied the Recycle Bin. ghostfreq objects, and the drafts
+    // come back a moment later.
+    emptyBin() {
+      if (binCount === 0) return;
+      binList.replaceChildren();
+      binStatus.textContent = "0 object(s)";
+      if (online) sayOnce("emptybin", "NOT THE DRAFTS", 400);
+      window.setTimeout(() => {
+        renderBin();
+        if (online) sayOnce("emptybin-back", "ok i put them back. don't do that", 600);
+      }, 3500);
+    },
+
     // Something ghostfreq says about what the player just did, once ever.
     remark(key: string, text: string, delay = 800) {
       if (online) sayOnce(`remark:${key}`, text, delay);
