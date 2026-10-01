@@ -1,4 +1,10 @@
-import { InterferenceLayer, Transmission, WordBand } from "./transmissions";
+import {
+  DEFAULT_TUNING,
+  InterferenceLayer,
+  Transmission,
+  Tuning,
+  WordBand,
+} from "./transmissions";
 import type { EqBand } from "./webampAdapter";
 
 export interface LayerStatus {
@@ -51,8 +57,7 @@ export class SignalTunerGame {
   // Hold-to-Lock synchronization state
   private lockTargetBand: WordBand | null = null;
   private lockStartTime: number = 0;
-  private readonly lockDurationMs: number = 750;
-  private readonly lockExitHysteresis: number = 5; // Units to move outside band to cancel lock
+  private readonly tuning: Tuning;
   private lockTimerId: ReturnType<typeof setTimeout> | null = null;
   private lockAnimId: number | null = null;
 
@@ -64,6 +69,7 @@ export class SignalTunerGame {
     this.transmission = transmission;
     this.events = events;
     this.frequency = transmission.min;
+    this.tuning = { ...DEFAULT_TUNING, ...transmission.tuning };
     this.decodedBandIds = new Set(decodedBandIds);
   }
 
@@ -198,7 +204,7 @@ export class SignalTunerGame {
         this.frequency < this.lockTargetBand.min
           ? this.lockTargetBand.min - this.frequency
           : this.frequency - this.lockTargetBand.max;
-      if (dist < this.lockExitHysteresis) {
+      if (dist < this.tuning.slack) {
         // Still within hysteresis zone, don't cancel yet
         return;
       }
@@ -227,7 +233,7 @@ export class SignalTunerGame {
         return;
       }
       const elapsed = performance.now() - this.lockStartTime;
-      const progress = Math.min(1, elapsed / this.lockDurationMs);
+      const progress = Math.min(1, elapsed / this.tuning.lockMs);
       this.events.onLockProgress?.(this.lockTargetBand, progress);
 
       if (progress >= 1) {
@@ -276,7 +282,7 @@ export class SignalTunerGame {
     const elapsed = performance.now() - this.lockStartTime;
     return {
       band: this.lockTargetBand,
-      progress: Math.min(1, elapsed / this.lockDurationMs),
+      progress: Math.min(1, elapsed / this.tuning.lockMs),
     };
   }
 
@@ -367,14 +373,15 @@ export class SignalTunerGame {
     const isInsideStation = minDistance === 0;
 
     // Dynamic sigma: reception field EXPANDS as fewer targets remain.
-    // sigma=40: wide enough that cues emerge ~60+ units from station
-    // sigma=85: on the last target, the entire dial whispers the station in
+    // Reach runs from reachStart to reachEnd (see Tuning), so on the last
+    // target the whole dial whispers the station in.
     const totalBands = this.transmission.bands.length;
     const decodedFraction =
       totalBands > 1
         ? this.decodedBandIds.size / (totalBands - 1)
         : this.decodedBandIds.size;
-    const sigma = 40 + decodedFraction * 45; // 40 → 85
+    const { reachStart, reachEnd } = this.tuning;
+    const sigma = reachStart + decodedFraction * (reachEnd - reachStart);
 
     const proximity = isDecodedStation
       ? 0

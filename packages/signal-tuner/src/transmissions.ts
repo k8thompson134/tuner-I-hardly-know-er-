@@ -29,6 +29,29 @@ export interface InterferenceLayer {
   zone: { min: number; max: number };
 }
 
+// How hard a transmission is to tune, beyond where its bands and filter targets
+// sit. Anything left out falls back to DEFAULT_TUNING.
+export interface Tuning {
+  // How long the dial must stay on a station to lock it.
+  lockMs: number;
+  // How far a station's signal reaches, in dial units (a gaussian's sigma): a
+  // small reach means silence until you're nearly on it. It starts at
+  // reachStart and widens to reachEnd as words are found, so the last word is
+  // never a hunt in the dark.
+  reachStart: number;
+  reachEnd: number;
+  // How far outside a band the dial can drift, in dial units, before a
+  // lock in progress is lost.
+  slack: number;
+}
+
+export const DEFAULT_TUNING: Tuning = {
+  lockMs: 750,
+  reachStart: 40,
+  reachEnd: 85,
+  slack: 5,
+};
+
 export interface Transmission {
   id: string;
   title: string;
@@ -37,6 +60,7 @@ export interface Transmission {
   max: number;
   bands: WordBand[];
   layers?: InterferenceLayer[];
+  tuning?: Partial<Tuning>;
   // Loaded onto the player once every band's been decoded.
   // The reward for completing a transmission is hearing the song the lyric came from.
   unlockTrack?: UnlockTrack;
@@ -53,13 +77,16 @@ const MACLEOD = (title: string) => ({
 // A transmission may also have filter layers (170 NOISE, 14000 CLARITY) that
 // must be brought into their target range before the dial can decode words.
 //
-// Difficulty ramps one thing at a time:
-//   1  4 words, wide bands, no filter
-//   2  + a NOISE target (low, 21 wide)
-//   3  5 words, narrower bands, NOISE target on the other side
-//   4  NOISE target gets narrower (15 wide)
-//   5  6 words, narrower bands, narrower NOISE target (12 wide)
-//   6  6 narrow bands, NOISE + a CLARITY target
+// Difficulty ramps one thing at a time, and the `tuning` on each transmission
+// (lock time, signal reach, lock slack) tightens a little every level:
+//
+//        words  band  filters                    lock    reach     slack
+//   1    4      40    none                       0.60s   55 -> 100  8
+//   2    4      40    NOISE low (20 wide)        0.70s   50 -> 95   7
+//   3    5      36    NOISE other side (20)      0.80s   45 -> 90   6
+//   4    5      40    NOISE narrower (15)        0.90s   42 -> 85   5
+//   5    6      34    NOISE narrower (12)        1.00s   38 -> 80   4
+//   6    6      30    NOISE + CLARITY            1.10s   34 -> 72   3
 // Targets stay clear of the neutral 50 the sliders start on, so no station is
 // solved before a filter is touched.
 export const TRANSMISSIONS: Transmission[] = [
@@ -69,6 +96,7 @@ export const TRANSMISSIONS: Transmission[] = [
     subtitle: "Dial: 600 (Single Slider)",
     min: 0,
     max: 800,
+    tuning: { lockMs: 600, reachStart: 55, reachEnd: 100, slack: 8 },
     bands: [
       // 4 bands with ~180-unit dead zones between them
       { id: "t1-2", word: "HELLO",      min:  80, max: 120 },  // center 100
@@ -90,6 +118,7 @@ export const TRANSMISSIONS: Transmission[] = [
     subtitle: "Dial: 600 + NOISE: 170 (fixed filter)",
     min: 0,
     max: 800,
+    tuning: { lockMs: 700, reachStart: 50, reachEnd: 95, slack: 7 },
     layers: [
       {
         band: 170,
@@ -118,6 +147,7 @@ export const TRANSMISSIONS: Transmission[] = [
     subtitle: "Dial: 600 + NOISE: 170 (fixed filter, other side)",
     min: 0,
     max: 800,
+    tuning: { lockMs: 800, reachStart: 45, reachEnd: 90, slack: 6 },
     layers: [
       {
         band: 170,
@@ -148,6 +178,7 @@ export const TRANSMISSIONS: Transmission[] = [
     subtitle: "Dial: 600 + NOISE: 170 (narrower target)",
     min: 0,
     max: 800,
+    tuning: { lockMs: 900, reachStart: 42, reachEnd: 85, slack: 5 },
     // CLARITY (14K) joins in transmission 6.
     layers: [
       {
@@ -178,6 +209,7 @@ export const TRANSMISSIONS: Transmission[] = [
     subtitle: "Dial: 600 + NOISE: 170 (narrow target, 6 words)",
     min: 0,
     max: 800,
+    tuning: { lockMs: 1000, reachStart: 38, reachEnd: 80, slack: 4 },
     layers: [
       {
         band: 170,
@@ -209,6 +241,7 @@ export const TRANSMISSIONS: Transmission[] = [
     subtitle: "Dial: 600 + NOISE: 170 + CLARITY: 14K",
     min: 0,
     max: 800,
+    tuning: { lockMs: 1100, reachStart: 34, reachEnd: 72, slack: 3 },
     layers: [
       {
         band: 170,
