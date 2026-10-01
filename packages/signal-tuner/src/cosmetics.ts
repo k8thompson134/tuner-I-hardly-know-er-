@@ -5,12 +5,19 @@ import { EqBand } from "./webampAdapter";
 // logic lives here so it can be changed without reading the rest of the code.
 // ---------------------------------------------------------------------------
 
-// Which EQ sliders stay on screen. Every other band is hidden and its
-// leftover painted-on label is covered up — both derived from this one list,
-// so adding or removing a band here is the whole edit. Order doesn't matter.
+// Which EQ sliders stay on screen, and where: band -> left edge in px inside
+// the 275px-wide EQ window (Winamp's own pitch is 18px; these are spread out
+// as NOISE | TUNE | CLARITY). Every band not listed is hidden.
 //
-// Valid: "preamp", 60, 170, 310, 600, 1000, 3000, 6000, 12000, 14000, 16000.
-export const VISIBLE_BANDS: EqBand[] = [170, 600, 14000];
+// The skin paints the wells, ticks and labels for exactly these positions:
+// keep EQ_SLIDER_LEFT in scripts/build_placeholder_skin.py in step.
+//
+// Valid bands: "preamp", 60, 170, 310, 600, 1000, 3000, 6000, 12000, 14000, 16000.
+export const EQ_LAYOUT: Partial<Record<EqBand, number>> = {
+  170: 60,
+  600: 130,
+  14000: 200,
+};
 
 // Hide the EQ's curve preview and its +12/0/-12dB shortcut buttons. They're
 // audio-shaping controls, and the EQ isn't shaping audio here.
@@ -25,11 +32,11 @@ export const TONES = {
   fanfare: [523.25, 659.25, 783.99],
   fanfareStepMs: 120,
   // Range the proximity tone sweeps between as you close in on a word.
-  // Only used when `proximityFeedback` is enabled — see runTransmission.ts.
-  proximityLow: 180,
-  proximityHigh: 720,
+  // Lower, warm analog range (110–320Hz) so hold-to-lock peaks comfortably in the mid-range.
+  proximityLow: 110,
+  proximityHigh: 320,
 };
 
 // Peak gain for game tones, 0–1. Webamp's own volume slider does not affect
 // these (they're mixed in past it), so keep it modest.
-export const TONE_GAIN = 0.15;
+export const TONE_GAIN = 0.28;

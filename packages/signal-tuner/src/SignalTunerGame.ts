@@ -15,7 +15,6 @@ export interface ResonanceState {
   percent: number; // 0 to 100
   isCleared: boolean;
   hint: string;
-  ideal170?: number;
 }
 
 export interface CarrierStatus {
@@ -102,218 +101,41 @@ export class SignalTunerGame {
     );
   }
 
-  private getTargetStation(): { freq: number; label: string } {
-    const remainingBands = this.transmission.bands.filter(
-      (b) => !this.decodedBandIds.has(b.id)
-    );
-    const activeBand = this.transmission.bands.find(
-      (b) => this.frequency >= b.min && this.frequency <= b.max
-    );
-    const targetBand =
-      activeBand ??
-      (remainingBands.length > 0
-        ? remainingBands.reduce((closest, b) => {
-            const bCenter = (b.min + b.max) / 2;
-            const cCenter = (closest.min + closest.max) / 2;
-            return Math.abs(bCenter - this.frequency) <
-              Math.abs(cCenter - this.frequency)
-              ? b
-              : closest;
-          })
-        : null);
-
-    const freq = targetBand
-      ? (targetBand.min + targetBand.max) / 2
-      : this.frequency;
-    const label = targetBand ? `"${targetBand.word}"` : "SIGNAL";
-    return { freq, label };
+  getLayerStatusList(): LayerStatus[] {
+    return (this.transmission.layers ?? []).map((layer) => {
+      const { min, max } = layer.zone;
+      const value = this.getLayerValue(layer.band);
+      const distance = value < min ? min - value : value > max ? value - max : 0;
+      return {
+        layer,
+        currentValue: Math.round(value),
+        isCleared: distance === 0,
+        distance,
+        targetMin: min,
+        targetMax: max,
+        targetHint: distance === 0 ? "IN RANGE" : value < min ? "RAISE" : "LOWER",
+      };
+    });
   }
 
   getResonanceState(): ResonanceState {
-    const layers = this.transmission.layers;
-    if (!layers || layers.length === 0) {
+    const statuses = this.getLayerStatusList();
+    if (statuses.length === 0) {
       return {
         percent: 100,
         isCleared: true,
         hint: "CARRIER CLEAR — TUNE 600 DIAL",
       };
     }
-
-    const { freq: dialFreq, label: bandLabel } = this.getTargetStation();
-    const freqRatio = Math.max(
-      0,
-      Math.min(1, dialFreq / (this.transmission.max || 800))
-    );
-
-    if (layers.length === 1) {
-      // Transmission 2: 170 tracks carrier frequency across the dial!
-      const val170 = this.getLayerValue(170);
-      const ideal170 = Math.round(20 + freqRatio * 55);
-      const tolerance = 11;
-      const min170 = Math.max(0, ideal170 - tolerance);
-      const max170 = Math.min(100, ideal170 + tolerance);
-
-      const isCleared = val170 >= min170 && val170 <= max170;
-      let dist = 0;
-      let hint = `CARRIER ${bandLabel} LOCKED ✓`;
-      if (val170 < min170) {
-        dist = min170 - val170;
-        hint = `CARRIER ${bandLabel} (${Math.round(dialFreq)} kHz): PUSH 170 UP ➔ ~${ideal170}% (CURRENT: ${val170}%)`;
-      } else if (val170 > max170) {
-        dist = val170 - max170;
-        hint = `CARRIER ${bandLabel} (${Math.round(dialFreq)} kHz): PULL 170 DOWN ➔ ~${ideal170}% (CURRENT: ${val170}%)`;
-      }
-      const penalty = dist * 2.5;
-      const percent = isCleared
-        ? 100
-        : Math.max(0, Math.min(99, Math.round(100 - penalty)));
-      return {
-        percent,
-        isCleared,
-        hint: isCleared
-          ? `CARRIER ${bandLabel} BALANCED (170 @ ${val170}%) ✓`
-          : hint,
-        ideal170,
-      };
-    }
-
-    // Transmission 3: Both 14K (CLARITY) and 170 (NOISE) track carrier across the dial and couple!
-    const val14K = this.getLayerValue(14000);
-    const val170 = this.getLayerValue(170);
-
-    const ideal14K = Math.round(45 + freqRatio * 45);
-    const tol14K = 9;
-    const min14K = Math.max(0, ideal14K - tol14K);
-    const max14K = Math.min(100, ideal14K + tol14K);
-    const dist14K =
-      val14K < min14K ? min14K - val14K : val14K > max14K ? val14K - max14K : 0;
-
-    const base170 = 15 + freqRatio * 35;
-    const coupleShift = ((val14K - ideal14K) / 100) * 20;
-    const ideal170 = Math.round(
-      Math.max(10, Math.min(90, base170 + coupleShift))
-    );
-    const tol170 = 8;
-    const min170 = Math.max(0, ideal170 - tol170);
-    const max170 = Math.min(100, ideal170 + tol170);
-    const dist170 =
-      val170 < min170 ? min170 - val170 : val170 > max170 ? val170 - max170 : 0;
-
-    const isCleared = dist14K === 0 && dist170 === 0;
-    const totalPenalty = dist14K * 1.8 + dist170 * 2.2;
-    const percent = isCleared
-      ? 100
-      : Math.max(0, Math.min(99, Math.round(100 - totalPenalty)));
-
-    let hint = `HARMONIC RESONANCE ${bandLabel} LOCKED ✓`;
-    if (!isCleared) {
-      if (dist14K > 0 && dist170 > 0) {
-        hint = `CARRIER ${bandLabel} (${Math.round(dialFreq)} kHz) — TRIM 170 (~${ideal170}%) & 14K (~${ideal14K}%)`;
-      } else if (dist14K > 0) {
-        hint =
-          val14K < min14K
-            ? `CARRIER ${bandLabel}: PUSH 14K UP ➔ ~${ideal14K}% (CURRENT: ${val14K}%)`
-            : `CARRIER ${bandLabel}: PULL 14K DOWN ➔ ~${ideal14K}% (CURRENT: ${val14K}%)`;
-      } else {
-        hint =
-          val170 < min170
-            ? `CARRIER ${bandLabel}: PUSH 170 UP ➔ ~${ideal170}% (CURRENT: ${val170}%)`
-            : `CARRIER ${bandLabel}: PULL 170 DOWN ➔ ~${ideal170}% (CURRENT: ${val170}%)`;
-      }
-    }
-
+    const isCleared = statuses.every((s) => s.isCleared);
+    const penalty = statuses.reduce((sum, s) => sum + s.distance * 2.2, 0);
     return {
-      percent,
+      percent: isCleared ? 100 : Math.max(0, Math.min(99, Math.round(100 - penalty))),
       isCleared,
-      hint,
-      ideal170,
+      hint: isCleared
+        ? "ALL FILTERS IN RANGE"
+        : `ADJUST ${statuses.filter((s) => !s.isCleared).map((s) => s.layer.name).join(" + ")}`,
     };
-  }
-
-  getLayerStatusList(): LayerStatus[] {
-    if (!this.transmission.layers) return [];
-    const resonance = this.getResonanceState();
-    const { freq: dialFreq } = this.getTargetStation();
-    const freqRatio = Math.max(
-      0,
-      Math.min(1, dialFreq / (this.transmission.max || 800))
-    );
-
-    if (this.transmission.layers.length >= 2) {
-      const val14K = this.getLayerValue(14000);
-      const val170 = this.getLayerValue(170);
-      const ideal14K = Math.round(45 + freqRatio * 45);
-      const tol14K = 9;
-      const min14K = Math.max(0, ideal14K - tol14K);
-      const max14K = Math.min(100, ideal14K + tol14K);
-      const dist14K =
-        val14K < min14K ? min14K - val14K : val14K > max14K ? val14K - max14K : 0;
-
-      const ideal170 = resonance.ideal170 ?? Math.round(15 + freqRatio * 35);
-      const tol170 = 8;
-      const min170 = Math.max(0, ideal170 - tol170);
-      const max170 = Math.min(100, ideal170 + tol170);
-      const dist170 =
-        val170 < min170 ? min170 - val170 : val170 > max170 ? val170 - max170 : 0;
-
-      return this.transmission.layers.map((layer) => {
-        if (layer.band === 14000 || String(layer.band) === "14000") {
-          const isCleared = dist14K === 0;
-          return {
-            layer,
-            currentValue: Math.round(val14K),
-            isCleared,
-            distance: dist14K,
-            targetMin: min14K,
-            targetMax: max14K,
-            targetHint: isCleared
-              ? `TRACKING (${ideal14K}%)`
-              : val14K < min14K
-              ? `PUSH UP ➔ ~${ideal14K}%`
-              : `PULL DOWN ➔ ~${ideal14K}%`,
-          };
-        } else {
-          const isCleared = dist170 === 0;
-          return {
-            layer,
-            currentValue: Math.round(val170),
-            isCleared,
-            distance: dist170,
-            targetMin: min170,
-            targetMax: max170,
-            targetHint: isCleared
-              ? `COUPLED (${ideal170}%)`
-              : val170 < min170
-              ? `PUSH UP ➔ ~${ideal170}%`
-              : `PULL DOWN ➔ ~${ideal170}%`,
-          };
-        }
-      });
-    }
-
-    // Transmission 2 (single layer 170)
-    const val170 = this.getLayerValue(170);
-    const ideal170 = Math.round(20 + freqRatio * 55);
-    const tolerance = 11;
-    const min170 = Math.max(0, ideal170 - tolerance);
-    const max170 = Math.min(100, ideal170 + tolerance);
-    const isCleared = val170 >= min170 && val170 <= max170;
-    const dist =
-      val170 < min170 ? min170 - val170 : val170 > max170 ? val170 - max170 : 0;
-
-    return this.transmission.layers.map((layer) => ({
-      layer,
-      currentValue: Math.round(val170),
-      isCleared,
-      distance: dist,
-      targetMin: min170,
-      targetMax: max170,
-      targetHint: isCleared
-        ? `TRACKING (${ideal170}%)`
-        : val170 < min170
-        ? `PUSH UP ➔ ~${ideal170}%`
-        : `PULL DOWN ➔ ~${ideal170}%`,
-    }));
   }
 
   isLayerCleared(layer: InterferenceLayer): boolean {
