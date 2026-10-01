@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
     <title>Signal Tuner</title>
     <meta charset="utf-8" />
@@ -7,30 +7,243 @@
     <link rel="stylesheet" type="text/css" href="./css/style.css" />
   </head>
   <body>
-    <div id="page">
-      <div id="player-wrapper">
-        <div id="webamp-mount"></div>
+    <!-- Pixel icons: drawn at 32px, reused at 16px in title bars and the taskbar -->
+    <svg width="0" height="0" style="position: absolute" aria-hidden="true">
+      <defs>
+        <symbol id="i-radio" viewBox="0 0 32 32" shape-rendering="crispEdges">
+          <rect x="3" y="9" width="26" height="18" fill="#000" /><rect x="4" y="10" width="24" height="16" fill="#4c1d95" />
+          <rect x="6" y="12" width="12" height="6" fill="#05010b" /><rect x="7" y="15" width="10" height="1" fill="#39ff14" />
+          <rect x="21" y="13" width="5" height="5" fill="#c0c0c0" /><rect x="6" y="21" width="20" height="2" fill="#7c3aed" />
+          <rect x="22" y="3" width="1" height="7" fill="#000" />
+        </symbol>
+        <symbol id="i-bin" viewBox="0 0 32 32" shape-rendering="crispEdges">
+          <rect x="7" y="6" width="18" height="3" fill="#000" /><rect x="8" y="7" width="16" height="1" fill="#dfdfdf" />
+          <rect x="8" y="9" width="16" height="20" fill="#000" /><rect x="9" y="9" width="14" height="19" fill="#c0c0c0" />
+          <rect x="11" y="11" width="1" height="15" fill="#808080" /><rect x="15" y="11" width="1" height="15" fill="#808080" /><rect x="19" y="11" width="1" height="15" fill="#808080" />
+          <rect x="9" y="9" width="2" height="19" fill="#fff" />
+        </symbol>
+        <symbol id="i-notepad" viewBox="0 0 32 32" shape-rendering="crispEdges">
+          <rect x="6" y="3" width="20" height="27" fill="#000" /><rect x="7" y="4" width="18" height="25" fill="#fff" />
+          <rect x="7" y="4" width="18" height="3" fill="#000080" />
+          <rect x="9" y="10" width="14" height="1" fill="#808080" /><rect x="9" y="14" width="14" height="1" fill="#808080" />
+          <rect x="9" y="18" width="10" height="1" fill="#808080" /><rect x="9" y="22" width="12" height="1" fill="#808080" />
+        </symbol>
+        <symbol id="i-file" viewBox="0 0 32 32" shape-rendering="crispEdges">
+          <rect x="6" y="3" width="20" height="27" fill="#000" /><rect x="7" y="4" width="18" height="25" fill="#fff" />
+          <rect x="20" y="3" width="6" height="6" fill="#000" /><rect x="20" y="4" width="5" height="5" fill="#c0c0c0" />
+          <rect x="9" y="12" width="14" height="1" fill="#000" /><rect x="9" y="16" width="14" height="1" fill="#000" /><rect x="9" y="20" width="8" height="1" fill="#000" />
+        </symbol>
+        <symbol id="i-start" viewBox="0 0 16 16" shape-rendering="crispEdges">
+          <rect x="1" y="1" width="6" height="6" fill="#e00000" /><rect x="9" y="1" width="6" height="6" fill="#00a000" />
+          <rect x="1" y="9" width="6" height="6" fill="#0000e0" /><rect x="9" y="9" width="6" height="6" fill="#e0c000" />
+        </symbol>
+        <symbol id="i-shutdown" viewBox="0 0 32 32" shape-rendering="crispEdges">
+          <rect x="4" y="5" width="24" height="17" fill="#000" /><rect x="5" y="6" width="22" height="15" fill="#000080" />
+          <rect x="11" y="22" width="10" height="3" fill="#808080" /><rect x="7" y="25" width="18" height="3" fill="#c0c0c0" />
+        </symbol>
+        <symbol id="i-modem" viewBox="0 0 32 32" shape-rendering="crispEdges">
+          <rect x="2" y="12" width="28" height="13" fill="#000" /><rect x="3" y="13" width="26" height="11" fill="#c0c0c0" />
+          <rect x="3" y="13" width="26" height="1" fill="#fff" /><rect x="3" y="23" width="26" height="1" fill="#808080" />
+          <rect x="6" y="20" width="2" height="2" fill="#00e000" /><rect x="10" y="20" width="2" height="2" fill="#00e000" />
+          <rect x="14" y="20" width="2" height="2" fill="#e00000" /><rect x="18" y="20" width="2" height="2" fill="#404040" />
+          <rect x="22" y="16" width="5" height="1" fill="#808080" /><rect x="22" y="18" width="5" height="1" fill="#808080" />
+          <rect x="15" y="4" width="2" height="8" fill="#000" /><rect x="11" y="4" width="10" height="2" fill="#000080" />
+        </symbol>
+        <symbol id="i-aim" viewBox="0 0 32 32" shape-rendering="crispEdges">
+          <rect x="13" y="3" width="6" height="6" fill="#000" /><rect x="14" y="4" width="4" height="4" fill="#ffcc00" />
+          <rect x="11" y="10" width="10" height="9" fill="#000" /><rect x="12" y="11" width="8" height="7" fill="#ffcc00" />
+          <rect x="8" y="12" width="4" height="2" fill="#000" /><rect x="20" y="14" width="5" height="2" fill="#000" />
+          <rect x="11" y="19" width="3" height="9" fill="#000" /><rect x="18" y="19" width="3" height="7" fill="#000" /><rect x="21" y="25" width="3" height="2" fill="#000" />
+        </symbol>
+        <symbol id="i-display" viewBox="0 0 32 32" shape-rendering="crispEdges">
+          <rect x="3" y="4" width="26" height="19" fill="#000" /><rect x="4" y="5" width="24" height="17" fill="#c0c0c0" />
+          <rect x="6" y="7" width="20" height="13" fill="#008080" /><rect x="10" y="10" width="9" height="6" fill="#c0c0c0" /><rect x="10" y="10" width="9" height="2" fill="#000080" />
+          <rect x="12" y="23" width="8" height="3" fill="#808080" /><rect x="8" y="26" width="16" height="2" fill="#c0c0c0" />
+        </symbol>
+        <symbol id="g-min" viewBox="0 0 8 7" shape-rendering="crispEdges"><rect x="1" y="5" width="6" height="2" fill="#000" /></symbol>
+        <symbol id="g-close" viewBox="0 0 8 7" shape-rendering="crispEdges">
+          <path fill="#000" d="M0 0h2v1h1v1h2V1h1V0h2v1H7v1H6v1H5v1h1v1h1v1h1v1H6V6H5V5H3v1H2v1H0V6h1V5h1V4h1V3H2V2H1V1H0z" />
+        </symbol>
+      </defs>
+    </svg>
+
+    <main id="desktop" data-wallpaper="nebula">
+      <div id="dawn"></div>
+      <div id="icons">
+        <button type="button" class="icon" data-open="winamp"><svg><use href="#i-radio" /></svg><span>Signal Tuner</span></button>
+        <button type="button" class="icon" data-open="win-trash"><svg><use href="#i-bin" /></svg><span>Recycle Bin</span></button>
       </div>
-      <div id="tuner-panel">
-        <div id="panel-header">
-          <div id="status-readout" role="status" aria-live="polite" aria-atomic="true">Loading transmission&hellip;</div>
-          <div id="panel-controls">
-            <div id="scale-controls">
-              <span class="control-label">SCALE</span>
-              <button type="button" class="scale-btn" data-scale="1">1x</button>
-              <button type="button" class="scale-btn" data-scale="1.2">1.2x</button>
-              <button type="button" class="scale-btn active" data-scale="1.35">1.35x</button>
-              <button type="button" class="scale-btn" data-scale="1.5">1.5x</button>
+
+      <!-- Webamp renders here; it covers the desktop but only its windows take clicks. -->
+      <div id="webamp-mount"></div>
+
+      <section class="os-window raised" id="win-trash" data-title="Recycle Bin" data-icon="i-bin" style="width: 240px" hidden>
+        <div class="titlebar" data-drag>
+          <svg><use href="#i-bin" /></svg><span class="title">Recycle Bin</span>
+          <button type="button" class="btn tb-btn" data-min aria-label="Minimize"><svg><use href="#g-min" /></svg></button>
+          <button type="button" class="btn tb-btn close" data-close aria-label="Close"><svg><use href="#g-close" /></svg></button>
+        </div>
+        <div class="field list" id="bin-list"></div>
+        <div class="statusbar"><div class="status-field" id="bin-status"></div><div class="status-field">My Computer</div></div>
+      </section>
+
+      <section class="os-window raised" id="win-letter" data-title="Notepad" data-icon="i-notepad" style="width: 280px" hidden>
+        <div class="titlebar" data-drag>
+          <svg><use href="#i-notepad" /></svg><span class="title" id="letter-title">Notepad</span>
+          <button type="button" class="btn tb-btn" data-min aria-label="Minimize"><svg><use href="#g-min" /></svg></button>
+          <button type="button" class="btn tb-btn close" data-close aria-label="Close"><svg><use href="#g-close" /></svg></button>
+        </div>
+        <div class="menubar"><span>File</span><span>Edit</span><span>Search</span><span>Help</span></div>
+        <div class="field notepad" id="letter-text"></div>
+      </section>
+
+      <section class="os-window raised" id="win-credits" data-title="Music Credits" data-icon="i-notepad" style="width: 380px" hidden>
+        <div class="titlebar" data-drag>
+          <svg><use href="#i-notepad" /></svg><span class="title">credits.txt - Notepad</span>
+          <button type="button" class="btn tb-btn" data-min aria-label="Minimize"><svg><use href="#g-min" /></svg></button>
+          <button type="button" class="btn tb-btn close" data-close aria-label="Close"><svg><use href="#g-close" /></svg></button>
+        </div>
+        <div class="menubar"><span>File</span><span>Edit</span><span>Search</span><span>Help</span></div>
+        <div class="field notepad" id="credits-text"></div>
+      </section>
+
+      <section class="os-window raised" id="win-im" data-title="ghostfreq_01 - IM" data-icon="i-aim" style="width: 290px" hidden>
+        <div class="titlebar" data-drag>
+          <svg><use href="#i-aim" /></svg><span class="title">ghostfreq_01 - Instant Message</span>
+          <button type="button" class="btn tb-btn" data-min aria-label="Minimize"><svg><use href="#g-min" /></svg></button>
+          <button type="button" class="btn tb-btn close" data-close aria-label="Close"><svg><use href="#g-close" /></svg></button>
+        </div>
+        <div class="menubar"><span>File</span><span>Edit</span><span>Insert</span><span>People</span></div>
+        <div class="body">
+          <div class="field" id="im-log" role="log" aria-live="polite"></div>
+          <form id="im-form" autocomplete="off">
+            <div class="field im-input"><input id="im-input" maxlength="120" aria-label="Message to ghostfreq_01" /></div>
+            <button type="submit" class="btn">Send</button>
+          </form>
+        </div>
+      </section>
+
+      <section class="os-window raised" id="win-display" data-title="Display Properties" data-icon="i-display" style="width: 340px" hidden>
+        <div class="titlebar" data-drag>
+          <svg><use href="#i-display" /></svg><span class="title">Display Properties</span>
+          <button type="button" class="btn tb-btn close" id="disp-x" aria-label="Close"><svg><use href="#g-close" /></svg></button>
+        </div>
+        <div class="body" style="gap: 0; padding: 8px 6px 6px">
+          <div class="tabs" role="tablist">
+            <button type="button" class="tab" role="tab" aria-selected="true" data-tab="tab-bg">Background</button>
+            <button type="button" class="tab" role="tab" aria-selected="false" data-tab="tab-look">Appearance</button>
+            <button type="button" class="tab" role="tab" aria-selected="false" data-tab="tab-fx">Effects</button>
+          </div>
+          <div class="raised">
+            <div class="tab-panel" id="tab-bg">
+              <div class="monitor"><div class="monitor-screen" id="monitor-screen" data-wallpaper="nebula"><i></i></div></div>
+              <div>Wallpaper</div>
+              <div class="field listbox" id="wp-list" role="listbox" aria-label="Wallpaper">
+                <div data-wp="nebula" role="option">Nebula (3 AM)</div>
+                <div data-wp="chrome" role="option">Chrome Spheres</div>
+                <div data-wp="static" role="option">Static</div>
+                <div data-wp="teal" role="option">Teal (Classic)</div>
+              </div>
+            </div>
+            <div class="tab-panel" id="tab-look" hidden>
+              <div class="form">
+                <label for="opt-scheme">Scheme:</label>
+                <select class="field" id="opt-scheme">
+                  <option value="standard">Windows Standard</option>
+                  <option value="lilac">Lilac</option>
+                  <option value="rose">Rose</option>
+                  <option value="eggplant">Eggplant</option>
+                  <option value="contrast">High Contrast Black</option>
+                </select>
+                <label for="opt-titlebar">Title bars:</label>
+                <select class="field" id="opt-titlebar">
+                  <option value="flat">Flat (95)</option>
+                  <option value="gradient">Gradient (98)</option>
+                  <option value="y2k">Y2K Neon</option>
+                </select>
+                <label for="opt-font">Font:</label>
+                <select class="field" id="opt-font">
+                  <option value="pixel">MS Sans Serif (pixel)</option>
+                  <option value="system">Tahoma (smooth)</option>
+                </select>
+              </div>
+              <div class="hint">Colors the desktop windows. The player's skin is separate.</div>
+            </div>
+            <div class="tab-panel" id="tab-fx" hidden>
+              <label class="check"><input type="checkbox" id="opt-crt" /> CRT scanlines and glow</label>
+              <label class="check"><input type="checkbox" id="opt-dawn" checked /> Dawn creeps in as you decode</label>
+              <label class="check"><input type="checkbox" id="opt-sound" checked /> System sounds</label>
+              <div class="hint">Dawn: the sky lightens and the clock runs from 3:14 toward 4 AM with every word you find.</div>
             </div>
           </div>
+          <div class="row-end" style="margin-top: 8px">
+            <button type="button" class="btn" id="disp-ok">OK</button>
+            <button type="button" class="btn" id="disp-cancel">Cancel</button>
+          </div>
         </div>
-        <div id="layer-hud" role="region" aria-live="polite" aria-label="Resonance filter status"></div>
-        <div id="instructions">
-          Drag the <strong>600</strong> band on the Winamp equalizer to tune.
-          Decoded words appear in the title bar.
+      </section>
+
+      <section class="os-window raised dialog" id="win-connect" data-title="Connect To" data-icon="i-modem" hidden>
+        <div class="titlebar">
+          <svg><use href="#i-modem" /></svg><span class="title" id="connect-title">Connect To</span>
+          <button type="button" class="btn tb-btn close" id="connect-x" aria-label="Close"><svg><use href="#g-close" /></svg></button>
         </div>
+        <div class="body" id="connect-form">
+          <div class="connect-head"><svg><use href="#i-modem" /></svg>Signal ISP</div>
+          <div class="form">
+            <span>User name:</span><div class="field">sk8rgrl_3am</div>
+            <span>Password:</span><div class="field">&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;</div>
+            <span>Phone number:</span><div class="field">555-0314</div>
+            <span>Dialing from:</span><div class="field dim">Bedroom, 3 AM</div>
+          </div>
+          <div class="row-end"><button type="button" class="btn" id="connect-go">Connect</button><button type="button" class="btn" id="connect-offline">Work Offline</button></div>
+        </div>
+        <div class="body" id="connect-progress" hidden>
+          <div class="connect-head"><svg><use href="#i-modem" /></svg><span>Status: <span id="connect-status">Dialing...</span></span></div>
+          <div class="row-end"><button type="button" class="btn" id="connect-cancel">Cancel</button></div>
+        </div>
+      </section>
+
+      <div id="date-stamp">'01 3 14 AM</div>
+    </main>
+
+    <div id="start-menu" class="raised" hidden>
+      <div class="start-band">Signal<b>OS</b></div>
+      <div class="start-items">
+        <button type="button" class="start-item" data-open="winamp"><svg><use href="#i-radio" /></svg>Signal Tuner</button>
+        <button type="button" class="start-item" data-open="win-credits"><svg><use href="#i-notepad" /></svg>Music Credits</button>
+        <button type="button" class="start-item" data-open="win-display"><svg><use href="#i-display" /></svg>Display Properties</button>
+        <button type="button" class="start-item" data-open="win-im"><svg><use href="#i-aim" /></svg>Instant Message</button>
+        <button type="button" class="start-item" data-open="win-trash"><svg><use href="#i-bin" /></svg>Recycle Bin</button>
+        <button type="button" class="start-item" id="redial-item"><svg><use href="#i-modem" /></svg>Dial-Up Connection</button>
+        <hr class="sep" />
+        <button type="button" class="start-item" id="shutdown-item"><svg><use href="#i-shutdown" /></svg>Shut Down...</button>
       </div>
     </div>
+
+    <footer id="taskbar">
+      <button type="button" class="btn" id="start-btn" aria-expanded="false"><svg><use href="#i-start" /></svg>Start</button>
+      <div class="tb-divider"></div>
+      <div id="tabs"></div>
+      <div id="tray" class="status-field">
+        <svg id="tray-modem" class="tray-modem" hidden aria-label="Connected to Signal ISP"><title>Connected to Signal ISP</title><use href="#i-modem" /></svg>
+        <span id="clock">3:14 AM</span>
+      </div>
+    </footer>
+
+    <div id="ctx" class="raised" hidden>
+      <button type="button" data-act="arrange">Arrange Icons</button>
+      <button type="button" data-act="refresh">Refresh</button>
+      <hr class="sep" />
+      <button type="button" data-act="props">Properties</button>
+    </div>
+
+    <div id="crt"></div>
+
+    <div id="shutdown" hidden>It's now safe to turn off<br />your receiver.</div>
+
+    <div id="status-readout" class="visually-hidden" role="status" aria-live="polite" aria-atomic="true">Loading transmission&hellip;</div>
+
     <script type="module" src="./src/main.ts"></script>
   </body>
 </html>
