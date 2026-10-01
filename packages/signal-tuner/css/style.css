@@ -197,6 +197,26 @@ body {
   pointer-events: auto;
   touch-action: none;
 }
+/* The slider the wheel or a swipe will move. */
+#webamp-mount #webamp .band[data-selected] {
+  outline: 1px solid var(--amber);
+  outline-offset: 2px;
+}
+
+/* Touch screens (html.touch): scrolling and pinch-zoom work over the player
+   except on the equalizer, where a swipe moves the selected slider. Webamp's
+   own slider handling is switched off there; see enableManualTuning. */
+html.touch #webamp-mount #webamp {
+  touch-action: pan-y pinch-zoom;
+}
+html.touch #equalizer-window {
+  touch-action: pinch-zoom;
+}
+html.touch #equalizer-window .band,
+html.touch #equalizer-window .band * {
+  pointer-events: none;
+}
+
 /* Slider grooves show how close each is to its target. The groove stays on
    Webamp's green frame and its hue is rotated by --groove-hue (set by
    setBandTint): violet far, through blue and cyan, to green on target. The
@@ -840,193 +860,50 @@ select.field {
 @media (max-width: 767px) {
   body {
     overflow: auto;
-    font-size: 10px;
   }
-
   #desktop {
     position: relative;
     inset: auto;
     min-height: calc(100dvh - var(--taskbar-h));
-    padding: 8px 12px calc(var(--taskbar-h) + 48px);
+    padding: 12px 16px calc(var(--taskbar-h) + 48px);
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 12px;
     overflow: visible;
   }
-
   #icons {
     position: static;
     flex-direction: row;
     justify-content: center;
     gap: 4px;
   }
-
-  .icon {
-    min-width: 44px;
-    min-height: 60px;
-  }
-
-  /* Webamp scaling for mobile - aggressive sizing for usability */
   #webamp-mount {
     position: relative;
     inset: auto;
     width: 100%;
-    max-width: 100%;
-    height: auto;
-    aspect-ratio: 275 / 348;
-    min-height: 85vh;
-    /* Ensures Webamp takes most of the visible space */
+    /* main + equalizer + the playlist at its phone size, with the 12px margin */
+    height: 392px;
     flex-shrink: 0;
-    -webkit-user-select: none;
-    user-select: none;
-    touch-action: none;
   }
-
-  /* Windows: responsive layout */
   .os-window {
     position: relative !important;
     left: auto !important;
     top: auto !important;
-    width: calc(100% - 24px) !important;
-    max-width: 360px !important;
-    max-height: 60vh !important;
-    display: flex;
-    flex-direction: column;
-    touch-action: none;
+    width: 100% !important;
+    max-width: 360px;
   }
-
-  /* Enlarge titlebar for easier dragging on touch */
   .titlebar {
-    padding: 2px 2px !important;
-    min-height: 24px;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    cursor: grab;
-    touch-action: none;
+    touch-action: auto;
   }
-
-  .titlebar:active {
-    cursor: grabbing;
-  }
-
-  .titlebar svg {
-    width: 16px;
-    height: 16px;
-    flex-shrink: 0;
-  }
-
-  .titlebar .title {
-    flex: 1;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    font-size: 11px;
-  }
-
-  /* Bigger touch targets for buttons */
-  .titlebar .btn {
-    min-width: 20px;
-    min-height: 20px;
-    padding: 2px;
-  }
-
-  .titlebar .btn svg {
-    width: 8px;
-    height: 7px;
-  }
-
-  /* Window content scrolling */
-  .field {
-    flex: 1;
-    overflow-y: auto;
-    overflow-x: hidden;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .list {
-    min-height: 120px;
-  }
-
-  .notepad {
-    min-height: 150px;
-  }
-
-  /* Tab buttons: hide text, show icons only */
   #tabs .btn {
     width: auto;
-    min-width: 36px;
   }
-
   #tabs .btn span {
     display: none;
   }
-
-  #tabs .btn svg {
-    width: 16px;
-    height: 16px;
-  }
-
-  /* List rows: bigger touch target */
-  .list .row {
-    min-height: 24px;
-    padding: 2px 4px;
-  }
-
-  /* Date stamp positioning */
   #date-stamp {
     position: fixed;
     bottom: calc(var(--taskbar-h) + 10px);
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: 10px;
-  }
-
-  /* Prevent text selection during drag */
-  * {
-    -webkit-user-select: none;
-    user-select: none;
-  }
-
-  /* Allow text selection in text fields */
-  input, textarea, .notepad, .field {
-    -webkit-user-select: text;
-    user-select: text;
-  }
-
-  /* Enlarge Webamp's slider controls for mobile precision */
-  /* Target Webamp's internal slider/knob classes */
-  [class*="slider"], [class*="Slider"],
-  [class*="vSlider"], [class*="hSlider"],
-  input[type="range"] {
-    min-height: 24px !important;
-    min-width: 24px !important;
-  }
-}
-
-/* Ultra-small screens: 375px and below */
-@media (max-width: 375px) {
-  #webamp-mount {
-    min-height: 80vh;
-    /* Keep Webamp big even on smallest phones */
-  }
-
-  .os-window {
-    width: calc(100% - 16px) !important;
-    max-width: 100% !important;
-    max-height: 50vh !important;
-  }
-
-  .titlebar {
-    font-size: 9px;
-  }
-
-  .list {
-    min-height: 100px;
-  }
-
-  .notepad {
-    min-height: 120px;
   }
 }

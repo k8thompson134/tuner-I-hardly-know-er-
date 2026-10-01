@@ -754,20 +754,37 @@ export function ensureVisualizerActive(webamp: WebampLazy): void {
   }
 }
 
-// --- Mouse wheel ------------------------------------------------------------
+// --- Wheel and touch tuning -------------------------------------------------
 
-// Lets the mouse wheel (or trackpad scroll) move the EQ sliders in fine
-// steps: over a slider it moves that one; elsewhere over the equalizer it
-// moves the slider last clicked (`defaultBand` until one is). Dragging still
-// works as normal. One wheel notch moves a filter 2 units and the dial 1
-// (8 dial frequencies); Shift makes steps 4x bigger.
-export function enableWheelTuning(
+// Moves the EQ sliders without having to grab a handle. One slider is
+// "selected" at a time (outlined via data-selected; `defaultBand` until the
+// player picks another).
+// - Wheel / trackpad: over a slider it moves that one, elsewhere over the
+//   equalizer it moves the selected one. One notch moves a filter 2 units and
+//   the dial 1 (8 dial frequencies); Shift makes steps 4x bigger.
+// - Touch: a finger on a slider's column selects it and a swipe up or down
+//   moves it, relative to where the swipe began (no jump to the finger). A
+//   swipe on empty equalizer space moves the selected slider; tapping empty
+//   space selects the nearest one. css/style.css turns off Webamp's own
+//   handling of the sliders under html.touch so the two don't fight.
+export function enableManualTuning(
   webamp: WebampLazy,
   bands: EqBand[],
   defaultBand: EqBand,
   { dialBand }: { dialBand: EqBand }
 ): () => void {
   let selected: EqBand = defaultBand;
+
+  const select = (band: EqBand) => {
+    selected = band;
+    for (const b of bands) {
+      const el = bandElement(b);
+      if (el == null) continue;
+      if (b === band) el.dataset.selected = "on";
+      else delete el.dataset.selected;
+    }
+  };
+  select(defaultBand);
 
   const bandAt = (target: EventTarget | null): EqBand | null => {
     const el = target instanceof Element ? target.closest(".band") : null;
@@ -776,14 +793,17 @@ export function enableWheelTuning(
 
   const onPointerDown = (e: PointerEvent) => {
     const band = bandAt(e.target);
-    if (band != null) selected = band;
+    if (band != null) select(band);
   };
   document.addEventListener("pointerdown", onPointerDown, true);
 
   const onWheel = (e: WheelEvent) => {
+    if (!(e.target instanceof Element) || e.target.closest("#equalizer-window") == null) {
+      return;
+    }
     e.preventDefault();
     const band = bandAt(e.target) ?? selected;
-    selected = band;
+    select(band);
     // Scroll up raises the slider. deltaY is ~100 per mouse notch and much
     // smaller per trackpad event, so scale it instead of counting events.
     const perNotch = band === dialBand ? 1 : 2;
@@ -793,13 +813,120 @@ export function enableWheelTuning(
     // Counts as touching a slider, so the tuning audio can start.
     eqTouched = true;
   };
-  const eq = document.getElementById("equalizer-window");
-  eq?.addEventListener("wheel", onWheel, { passive: false });
+  document.addEventListener("wheel", onWheel, { passive: false });
+
+  // Finger travel for a slider's full range, in CSS px. The dial is longer so
+  // a word's narrow band takes a deliberate move to cross.
+  const swipeSpan = (band: EqBand) => (band === dialBand ? 360 : 240);
+  const tapSlop = 8;
+  // A finger this close to a slider's column counts as being on it.
+  const columnPad = 16;
+
+  type Swipe = {
+    id: number;
+    band: EqBand;
+    tapBand: EqBand | null;
+    startY: number;
+    startValue: number;
+    moved: boolean;
+  };
+  let swipe: Swipe | null = null;
+
+  const onTouchDown = (e: PointerEvent) => {
+    if (e.pointerType === "mouse" || swipe != null) return;
+    if (!(e.target instanceof Element)) return;
+    const eq = e.target.closest("#equalizer-window");
+    if (eq == null || e.target.closest(".title-bar") != null) return;
+    // The nearest element with an id is a button, the graph, a slider...
+    // unless it is the window itself.
+    const control = e.target.closest("[id]");
+    if (control != null && control !== eq && eq.contains(control)) return;
+
+    let nearest: { band: EqBand; dx: number; half: number } | null = null;
+    for (const band of bands) {
+      const el = bandElement(band);
+      if (el == null) continue;
+      const r = el.getBoundingClientRect();
+      const dx = Math.abs(e.clientX - (r.left + r.width / 2));
+      if (nearest == null || dx < nearest.dx) {
+        nearest = { band, dx, half: r.width / 2 };
+      }
+    }
+    if (nearest == null) return;
+
+    const direct = nearest.dx <= nearest.half + columnPad;
+    const band = direct ? nearest.band : selected;
+    if (direct) select(band);
+    eqTouched = true;
+    swipe = {
+      id: e.pointerId,
+      band,
+      tapBand: direct ? null : nearest.band,
+      startY: e.clientY,
+      startValue: getEqBandValue(webamp, band),
+      moved: false,
+    };
+  };
+
+  const onTouchMove = (e: PointerEvent) => {
+    if (swipe == null || e.pointerId !== swipe.id) return;
+    if (!swipe.moved) {
+      if (Math.abs(e.clientY - swipe.startY) < tapSlop) return;
+      swipe.moved = true;
+      // Start counting from here so crossing the slop doesn't jump the value.
+      swipe.startY = e.clientY;
+    }
+    const value =
+      swipe.startValue - ((e.clientY - swipe.startY) / swipeSpan(swipe.band)) * 100;
+    setEqBandValue(webamp, swipe.band, Math.max(0, Math.min(100, value)));
+  };
+
+  const onTouchEnd = (e: PointerEvent) => {
+    if (swipe == null || e.pointerId !== swipe.id) return;
+    if (!swipe.moved && swipe.tapBand != null) select(swipe.tapBand);
+    swipe = null;
+  };
+
+  document.addEventListener("pointerdown", onTouchDown);
+  document.addEventListener("pointermove", onTouchMove);
+  document.addEventListener("pointerup", onTouchEnd);
+  document.addEventListener("pointercancel", onTouchEnd);
 
   return () => {
     document.removeEventListener("pointerdown", onPointerDown, true);
-    eq?.removeEventListener("wheel", onWheel);
+    document.removeEventListener("wheel", onWheel);
+    document.removeEventListener("pointerdown", onTouchDown);
+    document.removeEventListener("pointermove", onTouchMove);
+    document.removeEventListener("pointerup", onTouchEnd);
+    document.removeEventListener("pointercancel", onTouchEnd);
   };
+}
+
+// Winamp's windows are normally draggable by their title bars and plain
+// backgrounds. On a touch screen a stray swipe would pull the player apart, so
+// finger drags on them are ignored; the game positions the windows itself.
+// Same test as Webamp's WindowManager: the touched element is itself marked
+// "draggable". Mouse drags still work, so a laptop keeps its windows movable.
+export function lockWindowDragOnTouch(): void {
+  let lastTouchAt = -Infinity;
+  const isDragHandle = (e: Event) =>
+    e.target instanceof Element && e.target.classList.contains("draggable");
+  document.addEventListener(
+    "touchstart",
+    (e) => {
+      lastTouchAt = e.timeStamp;
+      if (isDragHandle(e)) e.stopPropagation();
+    },
+    { capture: true, passive: true }
+  );
+  // A touch is followed by an emulated mousedown.
+  document.addEventListener(
+    "mousedown",
+    (e) => {
+      if (e.timeStamp - lastTouchAt < 1000 && isDragHandle(e)) e.stopPropagation();
+    },
+    true
+  );
 }
 
 // --- Equalizer layout ------------------------------------------------------

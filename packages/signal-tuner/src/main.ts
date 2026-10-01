@@ -6,7 +6,8 @@ import type { EqBand } from "./webampAdapter";
 import {
   clearMarqueeMessage,
   createReadoutKeeper,
-  enableWheelTuning,
+  enableManualTuning,
+  lockWindowDragOnTouch,
   keepChannelLightsLit,
   layoutEqBands,
   sizePlaylist,
@@ -32,7 +33,9 @@ import {
 const TUNER_BAND = 600;
 
 const TRANSMISSION_HINTS = [
-  "SCAN: DRAG OR WHEEL TUNE  *  HOLD STEADY TO LOCK",
+  matchMedia("(pointer: coarse)").matches
+    ? "SCAN: TAP A SLIDER, SWIPE TO TUNE  *  HOLD STEADY TO LOCK"
+    : "SCAN: DRAG OR WHEEL TUNE  *  HOLD STEADY TO LOCK",
   "NOISE FILTER ON  *  FOLLOW THE WARNING TO CLEAR IT",
   "NOISE FILTER ON  *  THE TARGET IS ON THE OTHER SIDE THIS TIME",
   "NOISE FILTER ON  *  THE TARGET IS NARROWER THIS TIME",
@@ -64,7 +67,8 @@ async function main() {
   });
   await webamp.renderInto(webampNode);
   layoutEqBands(EQ_LAYOUT, { hideExtras: HIDE_EQ_EXTRAS });
-  enableWheelTuning(
+  lockWindowDragOnTouch();
+  enableManualTuning(
     webamp,
     Object.keys(EQ_LAYOUT).map(Number) as EqBand[],
     TUNER_BAND,
@@ -373,7 +377,11 @@ async function main() {
       });
     }
   };
-  window.addEventListener("pointerdown", resumeAudio, { once: true });
+  // A touch's pointerdown doesn't count as a user gesture for audio, so keep
+  // trying on release too until the context is running.
+  for (const type of ["pointerdown", "pointerup", "touchend"]) {
+    window.addEventListener(type, resumeAudio, true);
+  }
 
   window.addEventListener("beforeunload", () => {
     runningTx?.stop();

@@ -3,7 +3,19 @@
   <head>
     <title>Signal Tuner</title>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes, maximum-scale=5" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script>
+      // Phones: lay the page out 307px wide so Winamp's 275px fills the
+      // screen instead of leaving a third of it empty. The browser scales the
+      // page up to fit; pinch-zoom still works.
+      if (Math.min(screen.width, screen.height) < 500) {
+        document.querySelector('meta[name="viewport"]').content =
+          "width=307, maximum-scale=5";
+      }
+      if (matchMedia("(pointer: coarse)").matches) {
+        document.documentElement.classList.add("touch");
+      }
+    </script>
     <link rel="stylesheet" type="text/css" href="./css/style.css" />
   </head>
   <body>

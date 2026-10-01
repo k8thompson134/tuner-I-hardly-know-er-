@@ -174,21 +174,16 @@ export function createDesktop({ winamp }: { winamp: WinampHooks }) {
       .forEach((b) => (b.onclick = () => minimizeWin(win)));
     win.querySelectorAll<HTMLElement>("[data-drag]").forEach((handle) => {
       handle.addEventListener("pointerdown", (e) => {
-        if ((e.target as Element).closest("button")) return;
+        if (phone.matches || (e.target as Element).closest("button")) return;
         const bounds = desktop.getBoundingClientRect();
         const dx = e.clientX - win.offsetLeft;
         const dy = e.clientY - win.offsetTop;
         handle.setPointerCapture(e.pointerId);
         const move = (ev: PointerEvent) => {
           const x = Math.min(bounds.width - 60, ev.clientX - dx);
-          // On mobile, constrain vertical dragging to prevent windows from scattering
-          // Keep y-bounds reasonable (don't let windows drag too far down/up)
-          const isMobile = phone.matches;
-          const minY = isMobile ? Math.max(bounds.height * 0.3, 0) : 0;
-          const maxY = isMobile ? bounds.height * 1.2 : bounds.height - 20;
-          const y = Math.min(maxY, Math.max(minY, ev.clientY - dy));
+          const y = Math.min(bounds.height - 20, ev.clientY - dy);
           win.style.left = Math.max(60 - win.offsetWidth, x) + "px";
-          win.style.top = y + "px";
+          win.style.top = Math.max(0, y) + "px";
         };
         handle.addEventListener("pointermove", move);
         handle.addEventListener(
