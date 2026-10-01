@@ -1,11 +1,11 @@
-// Reacts to game events with story: buddy IMs and Recycle Bin letters. Knows
-// the desktop and the story copy, not Webamp or the game.
+// Reacts to game events with story: buddy IMs, its questions, and Recycle Bin
+// letters. Knows the desktop and the story copy, not Webamp or the game.
 
-import { BUDDY, LETTERS } from "./story";
+import { BUDDY, KEYWORDS, LETTERS, QUESTIONS } from "./story";
 import { doorClose, doorOpen, imBlip } from "./sfx";
 import { load, save } from "../storage";
 
-export const STORY_KEY = "signal-os-story";
+export const STORY_KEY = "signal-os-story-2";
 const MAX_LOG = 200;
 
 interface LogLine {
@@ -19,6 +19,11 @@ interface SavedStory {
   log: LogLine[];
   bins: number;
   signedOff: boolean;
+  // Transmissions completed so far; drives which act the buddy is in.
+  stage: number;
+  // Key of the question waiting on the player's answer.
+  pending: string | null;
+  answers: Record<string, string>;
 }
 
 export interface NarrativeDesktop {
@@ -31,6 +36,8 @@ export type GameEvent =
   | { type: "complete"; transmission: number; last: boolean };
 
 const IDLE_MS = 60_000;
+// Transmission 5 is the confession; after it the buddy stops playing dumb.
+const CONFESSED_AT_STAGE = 5;
 
 export function createNarrative(desktop: NarrativeDesktop) {
   const log = document.getElementById("im-log") as HTMLElement;
@@ -54,10 +61,22 @@ export function createNarrative(desktop: NarrativeDesktop) {
   const said = new Set<string>(Array.isArray(saved.said) ? saved.said : []);
   const delivered = new Set<string>(said);
   let binCount = 0;
+  let stage = typeof saved.stage === "number" ? saved.stage : 0;
+  let pending = typeof saved.pending === "string" ? saved.pending : null;
+  const answers: Record<string, string> =
+    saved.answers != null && typeof saved.answers === "object" ? saved.answers : {};
   const logLines: LogLine[] = savedLog.slice(-MAX_LOG);
 
   const persist = () =>
-    save(STORY_KEY, { said: [...delivered], log: logLines, bins: binCount, signedOff });
+    save(STORY_KEY, {
+      said: [...delivered],
+      log: logLines,
+      bins: binCount,
+      signedOff,
+      stage,
+      pending,
+      answers,
+    });
 
   // --- Instant messages ------------------------------------------------------
 
@@ -108,10 +127,45 @@ export function createNarrative(desktop: NarrativeDesktop) {
     if (text === "") return;
     append("me", "sk8rgrl_3am", text);
     input.value = "";
-    if (online && !signedOff) {
-      const reply = BUDDY.replies[Math.floor(Math.random() * BUDDY.replies.length)];
-      say(reply, 1200 + Math.random() * 1500);
+    if (online && !signedOff) say(replyTo(text.toLowerCase()), 1200 + Math.random() * 1500);
+  });
+
+  function replyTo(text: string): string {
+    const question = QUESTIONS.find((q) => q.key === pending);
+    if (question != null) {
+      answers[question.key] = text;
+      pending = null;
+      persist();
+      if (question === QUESTIONS[QUESTIONS.length - 1]) goAway();
+      return question.reply(text);
     }
+    const keyword = KEYWORDS.find((k) => k.match.test(text));
+    if (keyword != null) return keyword.reply(stage >= CONFESSED_AT_STAGE);
+    return BUDDY.replies[Math.floor(Math.random() * BUDDY.replies.length)];
+  }
+
+  function ask(index: number, delay: number) {
+    const question = QUESTIONS[index];
+    if (question == null || said.has(`q-${question.key}`)) return;
+    pending = question.key;
+    persist();
+    sayOnce(`q-${question.key}`, question.ask, delay);
+  }
+
+  // After the last question is answered it heads off to get ready.
+  function goAway() {
+    setTimeout(() => {
+      if (signedOff) return;
+      doorClose();
+      append("sys", "", BUDDY.away);
+      signedOff = true;
+      persist();
+    }, 6000);
+  }
+
+  document.addEventListener("os:wallpaper", (e) => {
+    if (!online || signedOff || stage < 2) return;
+    sayOnce("wallpaper", BUDDY.wallpaper((e as CustomEvent<string>).detail), 1500);
   });
 
   setInterval(() => {
@@ -179,7 +233,11 @@ export function createNarrative(desktop: NarrativeDesktop) {
     onGameEvent(event: GameEvent) {
       lastProgressAt = performance.now();
       if (!online) {
-        if (event.type === "complete") addLetter();
+        if (event.type === "complete") {
+          addLetter();
+          stage = Math.max(stage, event.transmission + 1);
+          persist();
+        }
         return;
       }
       if (event.type === "interference") {
@@ -192,17 +250,11 @@ export function createNarrative(desktop: NarrativeDesktop) {
         }
       } else {
         addLetter();
+        stage = Math.max(stage, event.transmission + 1);
+        persist();
         const lines = BUDDY.complete;
         sayOnce(`done${event.transmission}`, lines[Math.min(event.transmission, lines.length - 1)], 1400);
-        if (event.last) {
-          setTimeout(() => {
-            if (signedOff) return;
-            doorClose();
-            append("sys", "", BUDDY.signOff);
-            signedOff = true;
-            persist();
-          }, 6000);
-        }
+        ask(event.transmission, 4500);
       }
     },
   };

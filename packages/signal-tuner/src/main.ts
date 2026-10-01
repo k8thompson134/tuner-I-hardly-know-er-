@@ -236,15 +236,15 @@ async function main() {
   };
 
   // Night clock on the player's time digits: 3:14 AM, two minutes later for
-  // every word found across all transmissions.
+  // every word found across all transmissions. Keyed by decode count, not
+  // word, since a message can repeat a word (HELLO WORLD HELLO YOU).
   const wordsFound = new Set<string>(
-    TRANSMISSIONS.flatMap((t, i) =>
-      t.bands
-        .filter(
-          (b) => savedProgress.isCompleted(t.id) || savedProgress.decodedBands(t.id).includes(b.id)
-        )
-        .map((b) => `${i}:${b.word}`)
-    )
+    TRANSMISSIONS.flatMap((t, i) => {
+      const n = savedProgress.isCompleted(t.id)
+        ? t.bands.length
+        : savedProgress.decodedBands(t.id).length;
+      return Array.from({ length: n }, (_, k) => `${i}:${k + 1}`);
+    })
   );
   const totalWords = TRANSMISSIONS.reduce((n, t) => n + t.bands.length, 0);
   const dawn = document.getElementById("dawn") as HTMLElement;
@@ -313,7 +313,7 @@ async function main() {
         if (!cleared) narrative.onGameEvent({ type: "interference" });
       },
       onDecode: (word, count) => {
-        wordsFound.add(`${index}:${word}`);
+        wordsFound.add(`${index}:${count}`);
         showClock();
         narrative.onGameEvent({
           type: "decode",

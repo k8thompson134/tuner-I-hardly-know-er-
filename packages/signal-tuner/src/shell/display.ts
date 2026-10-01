@@ -77,6 +77,7 @@ export function createDisplayProperties({ close }: { close: (id: string) => void
     d.onclick = () => {
       prefs.wallpaper = d.dataset.wp ?? DEFAULTS.wallpaper;
       apply();
+      document.dispatchEvent(new CustomEvent("os:wallpaper", { detail: prefs.wallpaper }));
     };
   });
   for (const [id, key] of [
