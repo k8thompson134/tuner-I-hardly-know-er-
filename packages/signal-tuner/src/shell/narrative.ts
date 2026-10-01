@@ -276,7 +276,7 @@ export function createNarrative(desktop: NarrativeDesktop) {
         sayOnce(`done${event.transmission}`, lines[Math.min(event.transmission, lines.length - 1)], 1400);
         // An Act 2 tell: it has been reading the Notepad.
         const note = loadNote().split("\n").map((l) => l.trim()).find((l) => l !== "");
-        if (event.transmission >= 2 && note != null) {
+        if (event.transmission >= BUDDY.notepadAfter && note != null) {
           sayOnce("notepad", BUDDY.notepad(note.slice(0, 40)), 4200);
         }
         ask(event.transmission, 4500);

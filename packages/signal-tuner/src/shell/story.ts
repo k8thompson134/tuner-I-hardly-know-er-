@@ -168,7 +168,9 @@ export const BUDDY = {
     emptybin: "NOT THE DRAFTS",
     emptybinBack: "ok i put them back. don't do that",
   } as Record<string, string>,
-  // After the third transmission, about the first line in the Notepad.
+  // About the first line in the Notepad, once this transmission (a zero-based
+  // index) is done. Late, so players have had time to find the Notepad.
+  notepadAfter: 4,
   notepad: (line: string) => `i read ur notepad. sorry. it was just open. "${line}"`,
   idle: "still there?",
   away: "ghostfreq_01 is away: same time tomorrow",
