@@ -174,7 +174,7 @@ export function createDesktop({ winamp }: { winamp: WinampHooks }) {
       .forEach((b) => (b.onclick = () => minimizeWin(win)));
     win.querySelectorAll<HTMLElement>("[data-drag]").forEach((handle) => {
       handle.addEventListener("pointerdown", (e) => {
-        if (phone.matches || (e.target as Element).closest("button")) return;
+        if ((e.target as Element).closest("button")) return;
         const bounds = desktop.getBoundingClientRect();
         const dx = e.clientX - win.offsetLeft;
         const dy = e.clientY - win.offsetTop;
