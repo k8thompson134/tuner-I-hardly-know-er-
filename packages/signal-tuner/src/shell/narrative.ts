@@ -214,10 +214,11 @@ export function createNarrative(desktop: NarrativeDesktop) {
     }
   }
 
+  const INITIAL_BINS = 3;
   binCount =
-    typeof saved.bins === "number" && saved.bins >= 1 && saved.bins <= LETTERS.length
+    typeof saved.bins === "number" && saved.bins >= INITIAL_BINS && saved.bins <= LETTERS.length
       ? Math.floor(saved.bins)
-      : 1;
+      : INITIAL_BINS;
   renderBin();
 
   // --- Public ------------------------------------------------------------------
@@ -238,8 +239,14 @@ export function createNarrative(desktop: NarrativeDesktop) {
 
     // Something ghostfreq says about what the player just did, once ever.
     remark(key: string, delay = 800) {
-      const text = BUDDY.remarks[key];
+      const text = Object.hasOwn(BUDDY.remarks, key)
+        ? BUDDY.remarks[key]
+        : null;
       if (online && text != null) sayOnce(`remark:${key}`, text, delay);
+    },
+
+    getStage() {
+      return stage;
     },
 
     // The player has connected: the buddy comes online.
@@ -267,6 +274,9 @@ export function createNarrative(desktop: NarrativeDesktop) {
         if (event.count === Math.ceil(event.total / 2) && event.count < event.total) {
           const lines = BUDDY.halfway;
           sayOnce(`half${event.transmission}`, lines[event.transmission % lines.length], 900);
+          if (event.transmission === 5) {
+            sayOnce("t6Callback", BUDDY.t6Callback(answers), 2800);
+          }
         }
       } else {
         addLetter();
@@ -274,6 +284,9 @@ export function createNarrative(desktop: NarrativeDesktop) {
         persist();
         const lines = BUDDY.complete;
         sayOnce(`done${event.transmission}`, lines[Math.min(event.transmission, lines.length - 1)], 1400);
+        if (event.transmission === BUDDY.notepadNudgeAt) {
+          sayOnce("notepadNudge", BUDDY.notepadNudge, 3200);
+        }
         // An Act 2 tell: it has been reading the Notepad.
         const note = loadNote().split("\n").map((l) => l.trim()).find((l) => l !== "");
         if (event.transmission >= BUDDY.notepadAfter && note != null) {

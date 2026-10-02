@@ -991,6 +991,11 @@ select.field {
     top: auto !important;
     width: 100% !important;
     max-width: 360px;
+    scroll-margin-top: 12px;
+  }
+  .os-window input:focus,
+  .os-window textarea:focus {
+    scroll-margin-bottom: calc(var(--taskbar-h) + 16px);
   }
   .titlebar {
     touch-action: auto;

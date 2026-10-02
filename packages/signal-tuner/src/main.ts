@@ -23,7 +23,7 @@ import { createDesktop } from "./shell/desktop";
 import { createDialup } from "./shell/dialup";
 import { createProgress } from "./progress";
 import { createPrograms } from "./shell/programs";
-import { createNotepad } from "./shell/notepad";
+import { createNotepad, clearNote } from "./shell/notepad";
 import { createSaver } from "./shell/saver";
 import { createEggs } from "./shell/eggs";
 import { remove } from "./storage";
@@ -163,9 +163,11 @@ async function main() {
   });
   (document.getElementById("reset-item") as HTMLElement).onclick = () => {
     desktop.closeStart();
-    if (!confirm("Erase every decoded transmission and start over?")) return;
+    if (!confirm("Erase every decoded transmission, notes, and story progress to start over?")) return;
     savedProgress.reset();
     remove(STORY_KEY);
+    remove("signal-os-story"); // clean up legacy story key if present
+    clearNote();
     location.reload();
   };
   (document.getElementById("redial-item") as HTMLElement).onclick = () => {

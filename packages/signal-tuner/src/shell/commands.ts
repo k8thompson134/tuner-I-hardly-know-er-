@@ -38,6 +38,21 @@ const PING_GHOST = [
   "    Minimum = 480ms, Maximum = 481ms, Average = 480ms",
 ];
 
+const TRACERT_GHOST_EARLY = [
+  "Tracing route to ghostfreq_01 [1420.405.751.768]",
+  "over a maximum of 30 hops:",
+  "",
+  "  1   148 ms   modem.signal.isp",
+  "  2   151 ms   gw1.signal.isp",
+  "  3   160 ms   backbone.mil",
+  "  4   331 ms   uplink.dish.local",
+  "  5     *        *        *     Request timed out.",
+  "  6     *        *        *     Request timed out.",
+  "  7     *        *        *     Request timed out.",
+  "",
+  "Trace complete.",
+];
+
 const TRACERT_GHOST = [
   "Tracing route to ghostfreq_01 [1420.405.751.768]",
   "over a maximum of 30 hops:",
@@ -91,7 +106,7 @@ const DIR = [
 const isGhost = (t: string | undefined) =>
   t != null && /^(ghostfreq(_01)?|1420)$/i.test(t);
 
-export function runDos(input: string, clock: string): DosResult {
+export function runDos(input: string, clock: string, stage = 0): DosResult {
   const [first, ...args] = input.trim().split(/\s+/);
   const cmd = (first ?? "").toLowerCase();
   const arg = args[0]?.toLowerCase();
@@ -138,8 +153,8 @@ export function runDos(input: string, clock: string): DosResult {
       return { lines: [args.length === 0 ? "C:\\" : "Invalid directory"] };
     case "type": {
       if (arg == null) return { lines: ["Required parameter missing"] };
-      const name = FILES[arg] ? arg : `${arg}.txt`;
-      const file = FILES[name];
+      const name = Object.hasOwn(FILES, arg) ? arg : `${arg}.txt`;
+      const file = Object.hasOwn(FILES, name) ? FILES[name] : null;
       if (file == null) return { lines: ["File not found - " + args[0].toUpperCase()] };
       return name === "1420.dat"
         ? { lines: file, remark: "dos-1420" }
@@ -170,7 +185,9 @@ export function runDos(input: string, clock: string): DosResult {
       }
       return { lines: [`Unknown host ${args[0]}.`] };
     case "tracert":
-      if (isGhost(arg)) return { lines: TRACERT_GHOST };
+      if (isGhost(arg)) {
+        return { lines: stage >= 2 ? TRACERT_GHOST : TRACERT_GHOST_EARLY };
+      }
       return { lines: [arg == null ? "Usage: tracert hostname" : `Unable to resolve target system name ${args[0]}.`] };
     case "format":
       return {
@@ -251,9 +268,9 @@ export function resolveRun(input: string): RunResult {
   if (typed === "") return {};
   const name = typed.toLowerCase().replace(/\.(exe|com|bat|cpl)$/, "");
   if (name === "1420") return { open: "win-dos", dos: "1420" };
-  const open = OPENS[name];
+  const open = Object.hasOwn(OPENS, name) ? OPENS[name] : undefined;
   if (open != null) return { open };
-  const blocked = BLOCKED[name];
+  const blocked = Object.hasOwn(BLOCKED, name) ? BLOCKED[name] : undefined;
   if (blocked != null) return { message: blocked };
   return {
     message: `Cannot find the file '${typed}' (or one of its components). Make sure the path and filename are correct and that all required libraries are available.`,

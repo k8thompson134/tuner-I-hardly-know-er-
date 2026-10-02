@@ -29,7 +29,7 @@ const KONAMI = [
 
 const typingInField = (e: Event) =>
   e.target instanceof Element &&
-  e.target.closest("input, textarea, [contenteditable]") != null;
+  e.target.closest("input, textarea, select, [role='slider'], [contenteditable]") != null;
 
 export function createEggs(
   desktop: EggsDesktop,
@@ -102,6 +102,21 @@ export function createEggs(
   const menu = document.getElementById("ctx-bin") as HTMLElement;
   const hideMenu = () => (menu.hidden = true);
 
+  const confirmAndEmpty = () => {
+    if (confirm("Are you sure you want to permanently delete these items?")) {
+      narrative.emptyBin();
+    }
+  };
+
+  const binEmptyBtn = document.getElementById("bin-empty-btn");
+  binEmptyBtn?.addEventListener("click", confirmAndEmpty);
+  binEmptyBtn?.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      confirmAndEmpty();
+    }
+  });
+
   binIcon?.addEventListener("contextmenu", (e) => {
     e.preventDefault();
     menu.hidden = false;
@@ -119,10 +134,6 @@ export function createEggs(
     if (!act) return;
     hideMenu();
     if (act === "open") desktop.open("win-trash");
-    if (act === "empty") {
-      if (confirm("Are you sure you want to permanently delete these items?")) {
-        narrative.emptyBin();
-      }
-    }
+    if (act === "empty") confirmAndEmpty();
   });
 }

@@ -27,6 +27,8 @@ export interface InterferenceLayer {
   hint: string;
   // Target range, 0-100. Keep it clear of 50, where the slider starts.
   zone: { min: number; max: number };
+  // Optional orbital drift: slowly sways the target zone by +/- amplitude units over periodSec seconds
+  drift?: { amplitude: number; periodSec: number };
 }
 
 // How hard a transmission is to tune, beyond where its bands and filter targets
@@ -78,15 +80,15 @@ const MACLEOD = (title: string) => ({
 // must be brought into their target range before the dial can decode words.
 //
 // Difficulty ramps one thing at a time, and the `tuning` on each transmission
-// (lock time, signal reach, lock slack) tightens a little every level:
+// (lock time, signal reach, lock slack) tightens smoothly every level:
 //
 //        words  band  filters                    lock    reach     slack
-//   1    4      40    none                       0.60s   55 -> 100  8
-//   2    4      40    NOISE low (20 wide)        0.70s   50 -> 95   7
-//   3    5      36    NOISE other side (20)      0.80s   45 -> 90   6
-//   4    5      40    NOISE narrower (15)        0.90s   42 -> 85   5
-//   5    6      34    NOISE narrower (12)        1.00s   38 -> 80   4
-//   6    6      30    NOISE + CLARITY            1.10s   34 -> 72   3
+//   1    4      40    none                       0.60s   50 -> 85   8
+//   2    4      40    NOISE low (20 wide)        0.70s   48 -> 85   7
+//   3    5      36    NOISE other side (20)      0.80s   44 -> 80   6
+//   4    5      35    NOISE mid-low (15)         0.90s   40 -> 78   5
+//   5    6      34    NOISE tight-low (12)       1.00s   36 -> 75   5
+//   6    6      30    NOISE + CLARITY (drift)    1.00s   34 -> 72   5
 // Targets stay clear of the neutral 50 the sliders start on, so no station is
 // solved before a filter is touched.
 export const TRANSMISSIONS: Transmission[] = [
@@ -96,7 +98,7 @@ export const TRANSMISSIONS: Transmission[] = [
     subtitle: "Dial: 600 (Single Slider)",
     min: 0,
     max: 800,
-    tuning: { lockMs: 600, reachStart: 55, reachEnd: 100, slack: 8 },
+    tuning: { lockMs: 600, reachStart: 50, reachEnd: 85, slack: 8 },
     bands: [
       // 4 bands with ~180-unit dead zones between them
       { id: "t1-2", word: "HELLO",      min:  80, max: 120 },  // center 100
@@ -118,7 +120,7 @@ export const TRANSMISSIONS: Transmission[] = [
     subtitle: "Dial: 600 + NOISE: 170 (fixed filter)",
     min: 0,
     max: 800,
-    tuning: { lockMs: 700, reachStart: 50, reachEnd: 95, slack: 7 },
+    tuning: { lockMs: 700, reachStart: 48, reachEnd: 85, slack: 7 },
     layers: [
       {
         band: 170,
@@ -147,7 +149,7 @@ export const TRANSMISSIONS: Transmission[] = [
     subtitle: "Dial: 600 + NOISE: 170 (fixed filter, other side)",
     min: 0,
     max: 800,
-    tuning: { lockMs: 800, reachStart: 45, reachEnd: 90, slack: 6 },
+    tuning: { lockMs: 800, reachStart: 44, reachEnd: 80, slack: 6 },
     layers: [
       {
         band: 170,
@@ -175,25 +177,26 @@ export const TRANSMISSIONS: Transmission[] = [
   {
     id: "transmission-4",
     title: "Transmission 4 — Over and Out",
-    subtitle: "Dial: 600 + NOISE: 170 (narrower target)",
+    subtitle: "Dial: 600 + NOISE: 170 (mid-low target, 35 wide)",
     min: 0,
     max: 800,
-    tuning: { lockMs: 900, reachStart: 42, reachEnd: 85, slack: 5 },
+    tuning: { lockMs: 900, reachStart: 40, reachEnd: 78, slack: 5 },
     // CLARITY (14K) joins in transmission 6.
     layers: [
       {
         band: 170,
         name: "NOISE",
         hint: "Bring NOISE into range",
-        zone: { min: 74, max: 89 },
+        zone: { min: 25, max: 40 },
       },
     ],
     bands: [
-      { id: "t4-2", word: "TOO",        min:  60, max: 100 },  // center  80
-      { id: "t4-0", word: "IS",         min: 230, max: 270 },  // center 250
-      { id: "t4-6", word: "OVER",       min: 420, max: 460 },  // center 440
-      { id: "t4-1", word: "THIS",       min: 590, max: 630 },  // center 610
-      { id: "t4-5", word: "MUCH",       min: 720, max: 760 },  // center 740
+      // 5 bands, 35 wide around same centers
+      { id: "t4-2", word: "TOO",        min:  63, max:  98 },  // center  80
+      { id: "t4-0", word: "IS",         min: 233, max: 268 },  // center 250
+      { id: "t4-6", word: "OVER",       min: 423, max: 458 },  // center 440
+      { id: "t4-1", word: "THIS",       min: 593, max: 628 },  // center 610
+      { id: "t4-5", word: "MUCH",       min: 723, max: 758 },  // center 740
     ],
     unlockTrack: {
       url: "/audio/pixelland.mp3",
@@ -206,10 +209,10 @@ export const TRANSMISSIONS: Transmission[] = [
   {
     id: "transmission-5",
     title: "Transmission 5 — Not From Around Here",
-    subtitle: "Dial: 600 + NOISE: 170 (narrow target, 6 words)",
+    subtitle: "Dial: 600 + NOISE: 170 (tight target, 6 words)",
     min: 0,
     max: 800,
-    tuning: { lockMs: 1000, reachStart: 38, reachEnd: 80, slack: 4 },
+    tuning: { lockMs: 1000, reachStart: 36, reachEnd: 75, slack: 5 },
     layers: [
       {
         band: 170,
@@ -241,13 +244,15 @@ export const TRANSMISSIONS: Transmission[] = [
     subtitle: "Dial: 600 + NOISE: 170 + CLARITY: 14K",
     min: 0,
     max: 800,
-    tuning: { lockMs: 1100, reachStart: 34, reachEnd: 72, slack: 3 },
+    tuning: { lockMs: 1000, reachStart: 34, reachEnd: 72, slack: 5 },
     layers: [
       {
         band: 170,
         name: "NOISE",
         hint: "Bring NOISE into range",
         zone: { min: 68, max: 80 },
+        // Subtle orbital drift: +/- 4 units over a 24-second cycle as the window winds down
+        drift: { amplitude: 4, periodSec: 24 },
       },
       {
         band: 14000,

@@ -355,9 +355,21 @@ export function runTransmission(
     refreshUiCues();
   });
 
+  const hasDriftingLayers = (transmission.layers ?? []).some((l) => Boolean(l.drift));
+  let driftTimer: number | undefined;
+  if (hasDriftingLayers) {
+    driftTimer = window.setInterval(() => {
+      if (!game.isComplete()) {
+        updateInterference();
+        refreshUiCues();
+      }
+    }, 1000);
+  }
+
   return {
     game,
     stop: () => {
+      if (driftTimer !== undefined) window.clearInterval(driftTimer);
       completionTimers.forEach(clearTimeout);
       setBandTint(tunerBand, null);
       transmission.layers?.forEach((layer) => setBandTint(layer.band, null));

@@ -15,6 +15,7 @@ export interface ProgramsDesktop {
 
 export interface ProgramsNarrative {
   remark(key: string, delay?: number): void;
+  getStage?(): number;
 }
 
 const MAX_LINES = 300;
@@ -52,7 +53,8 @@ export function createPrograms(desktop: ProgramsDesktop, narrative: ProgramsNarr
       history.push(input);
       historyAt = history.length;
     }
-    const result = runDos(input, clockEl.textContent ?? "");
+    const stage = narrative.getStage?.() ?? 0;
+    const result = runDos(input, clockEl.textContent ?? "", stage);
     if (result.clear) out.replaceChildren();
     print(result.lines);
     if (result.remark != null) {

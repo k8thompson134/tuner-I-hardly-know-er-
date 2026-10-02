@@ -9,6 +9,8 @@ dist
 # Local-only media server project, intentionally not part of this repo.
 # Lives here for convenience; move it out to its own repo when convenient.
 packages/webamp-jukebox/
-# Internal planning/design docs and AI project notes, kept local only.
+# Internal planning/design docs, AI project notes, and QA reviews — kept local only.
 CLAUDE.md
 packages/signal-tuner/docs/
+reviews/
+.claude/

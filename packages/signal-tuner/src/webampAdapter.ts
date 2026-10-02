@@ -817,7 +817,7 @@ export function enableManualTuning(
 
   // Finger travel for a slider's full range, in CSS px. The dial is longer so
   // a word's narrow band takes a deliberate move to cross.
-  const swipeSpan = (band: EqBand) => (band === dialBand ? 220 : 150);
+  const swipeSpan = (band: EqBand) => (band === dialBand ? 260 : 150);
   const tapSlop = 8;
   // A finger this close to a slider's column counts as being on it.
   const columnPad = 16;

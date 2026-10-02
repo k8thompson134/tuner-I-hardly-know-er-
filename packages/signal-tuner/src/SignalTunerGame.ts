@@ -113,8 +113,15 @@ export class SignalTunerGame {
   }
 
   getLayerStatusList(): LayerStatus[] {
+    const now = typeof performance !== "undefined" ? performance.now() : 0;
     return (this.transmission.layers ?? []).map((layer) => {
-      const { min, max } = layer.zone;
+      let offset = 0;
+      if (layer.drift && layer.drift.periodSec > 0) {
+        const t = (now / 1000) * (2 * Math.PI / layer.drift.periodSec);
+        offset = Math.sin(t) * layer.drift.amplitude;
+      }
+      const min = Math.max(0, Math.min(100, Math.round(layer.zone.min + offset)));
+      const max = Math.max(0, Math.min(100, Math.round(layer.zone.max + offset)));
       const value = this.getLayerValue(layer.band);
       const distance = value < min ? min - value : value > max ? value - max : 0;
       return {

@@ -11,7 +11,10 @@ There is no timer and no fail state, just a quiet night, a radio, and a buddy wh
 - **Read the player.** The game reports through Winamp's own widgets: the playlist rows are the transmission list and the lyric so far, the marquee shows the decoded line, kbps shows the dial, kHz the signal strength, the stereo light means you're locked, the time digits are the night clock (3:14 AM creeping toward 4:00), and EQ **ON** means the static is clear.
 - **Move on** with the next-track button once a transmission is done. Six transmissions ramp up one change at a time.
 
-The desktop around the player holds the story: a dial-up connection on the first visit, instant messages from a buddy who reacts as you decode, unsent letters that land in the Recycle Bin, and Display Properties for wallpapers, colour schemes and a CRT effect.
+The desktop around the player holds the story: a dial-up connection on the first visit, instant messages from a buddy who reacts as you decode, unsent letters and personal artifacts in the Recycle Bin, an editable Notepad, and Display Properties for wallpapers, colour schemes, CRT effects, and a starfield screen saver.
+
+- **Persistence & Reset:** Progress (unlocked transmissions, decoded bands, buddy conversation state, and notes) is automatically saved to `localStorage`. You can erase all data and start over anytime via **Start → Reset Progress...**.
+- **Screen Saver & URL Flags:** The screen saver kicks in after 1 minute of inactivity (`?idle=5` sets idle timeout to 5 seconds for testing; `?dialup=1` forces the dial-up dialog to reappear).
 
 ## Running
 
@@ -35,12 +38,12 @@ python3 packages/signal-tuner/scripts/build_placeholder_skin.py
 ## Package structure
 
 - `src/cosmetics.ts` — the knobs worth turning: where the three EQ sliders sit, tone pitches, gain.
-- `src/transmissions.ts` — the levels: each transmission's words, dial bands, filter target ranges and unlock song.
-- `src/SignalTunerGame.ts` — game logic: frequency to decode events, hold-to-lock, filter state, proximity.
-- `src/webampAdapter.ts` — hooks into the real Winamp widgets: marquee, EQ sliders, readouts, playlist rows, visualizer tones.
+- `src/transmissions.ts` — the levels: each transmission's words, dial bands, filter target ranges, `tuning` parameters (hold duration, reach width, slack hysteresis, drift), and unlock songs.
+- `src/SignalTunerGame.ts` — game logic: frequency to decode events, hold-to-lock, filter resonance and orbital drift, proximity calculations.
+- `src/webampAdapter.ts` — hooks into the real Winamp widgets: marquee, EQ sliders, readouts, playlist rows, heterodyne tuning tones, visualizer.
 - `src/runTransmission.ts` — plays one transmission: wires the sliders to the game and the game to the marquee, readouts, sound and the unlock.
 - `src/main.ts` — bootstrap: builds the player and the desktop, then runs the active transmission.
-- `src/shell/` — the Signal OS desktop: windows, taskbar, Start menu, dial-up opener, buddy messages and letters (`story.ts` holds all the copy), Display Properties, synthesized sounds.
+- `src/shell/` — the Signal OS desktop: windows, taskbar, Start menu, MS-DOS prompt, Run box, editable Notepad, dial-up opener, buddy messages and letters (`story.ts` holds all the copy), Display Properties, starfield screen saver (`saver.ts`), synthesized sounds.
 - `scripts/build_placeholder_skin.py` — generates the player skin in `public/skins/`.
 
 ## Architecture
@@ -54,7 +57,7 @@ Layers, each knowing only what it needs:
 
 ## Adding a transmission
 
-Add an entry to `TRANSMISSIONS`, then one buddy line and one letter in `src/shell/story.ts` and an intro hint in `src/main.ts`. Wiring, sound and readouts are shared.
+Add an entry to `TRANSMISSIONS` with its `bands`, optional `layers` (filter zones and optional `drift`), and optional `tuning` overrides (`lockMs`, `reachStart`, `reachEnd`, `slack`). Then add one buddy line and one draft letter in `src/shell/story.ts`, and an intro hint in `src/main.ts`. Wiring, sound and readouts are shared.
 
 ## Music
 

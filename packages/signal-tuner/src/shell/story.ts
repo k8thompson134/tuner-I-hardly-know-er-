@@ -8,12 +8,21 @@ export interface Letter {
   text: string;
 }
 
-// Index 0 is in the bin from the start; each completed transmission adds the
-// next one.
+// Player artifacts and ghostfreq drafts in the Recycle Bin.
+// draft_001.txt and player files are in the bin from the start; each completed
+// transmission adds the next draft.
 export const LETTERS: Letter[] = [
   {
     file: "draft_001.txt",
     text: "GREETINGS, EARTHLING.      <- too formal\nGreetings, earthling.      <- still too formal\nhi.\n\n[UNTRANSLATED] your song again tonight. 3:14. same as always.\n[UNTRANSLATED] [UNTRANSLATED] [UNTRANSLATED].",
+  },
+  {
+    file: "napster_incomplete.part",
+    text: "[Napster incomplete download]\nTrack: Britney Spears - ...Baby One More Time (128kbps).mp3\nProgress: 84%\nEstimated time remaining: 47 minutes\nError: connection reset by peer (mom picked up the phone)",
+  },
+  {
+    file: "history_paper_v2_FINAL.txt",
+    text: "AP European History - Miss Gable\nPeriod 3\n\nTitle: The Industrial Revolution and Its Impact\nBy: Kate\n\n(TODO: find 3 more primary sources before 1st period tomorrow morning)\n(also ask Sarah if she has the notes from Tuesday)",
   },
   {
     file: "draft_002.txt",
@@ -108,12 +117,31 @@ export const KEYWORDS: { match: RegExp; reply(confessed: boolean): string }[] = 
   { match: /\ba\/?s\/?l\b/, reply: () => "age: old. sex: ?. location: up" },
   { match: /\b1420\b/, reply: () => "...how do u know that name" },
   {
+    match: /\b(hi|hello|hey|yo|sup|hiya)\b/,
+    reply: (c) => (c ? "hi. window is closing soon" : "hey. u find anything on 600 yet?"),
+  },
+  {
     match: /how (do|did) (u|you) know/,
     reply: (c) => (c ? "i can see ur screen from here. sorry" : "lucky guess"),
   },
   {
-    match: /who (are|r) (u|you)/,
+    match: /(who (are|r) (u|you)|what('?s| is) (ur|your) name|who dis)/,
     reply: (c) => (c ? "u know who" : "a fellow listener"),
+  },
+  {
+    match: /\b(cute|love (u|you)|like (u|you)|<3)\b/,
+    reply: (c) => (c ? "...the songs said people say that. (nice)" : "don't start. i'm trying to be professional"),
+  },
+  {
+    match: /\b(modem|dial-?up|56k)\b/,
+    reply: () => "best sound on earth tbh",
+  },
+  {
+    match: /\b(help|stuck|lost|how)\b/,
+    reply: (c) =>
+      c
+        ? "take it slow. hold still when it gets loud"
+        : "check the 600 dial. if it's all static, look at NOISE",
   },
   {
     match: /\b(alien|ufo|et|martian|space)\b/,
@@ -145,6 +173,22 @@ export const BUDDY = {
     "i keep losing it between the words",
     "two filters now. ok. almost there. (no pressure)",
   ],
+  // Mid-level callback during transmission 6 (close encounter) reflecting the player's choices
+  t6Callback: (answers: Record<string, string>) => {
+    const sky = answers.skyColor?.match(COLOURS)?.[0];
+    const gift = answers.gift?.toLowerCase();
+    const weird = answers.weird?.toLowerCase();
+    const parts: string[] = [];
+    if (sky) parts.push(`checking for a ${sky} sky`);
+    if (gift && /flower/.test(gift)) parts.push("holding flowers");
+    else if (gift && /band/.test(gift)) parts.push("56k dialed in");
+    if (weird && /\b(yes|yeah|ya|yea|kinda|maybe|little)\b/.test(weird)) {
+      parts.push("still coming anyway");
+    }
+    return parts.length > 0
+      ? `(${parts.join(". ")})`
+      : "(looking up from orbit)";
+  },
   firstInterference: "too much static. move the NOISE slider till the EQ button lights",
   complete: [
     "...hello to u too i guess. press >>| for the next one",
@@ -170,6 +214,8 @@ export const BUDDY = {
   } as Record<string, string>,
   // About the first line in the Notepad, once this transmission (a zero-based
   // index) is done. Late, so players have had time to find the Notepad.
+  notepadNudgeAt: 2,
+  notepadNudge: "are u taking notes on this? i have like 6 text files open",
   notepadAfter: 4,
   notepad: (line: string) => `i read ur notepad. sorry. it was just open. "${line}"`,
   idle: "still there?",
