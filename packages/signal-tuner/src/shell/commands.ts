@@ -208,6 +208,39 @@ export function runDos(input: string, clock: string, stage = 0): DosResult {
     case "notepad":
     case "edit":
       return { lines: ["Opening Notepad..."], open: "win-note" };
+    case "tree":
+      return {
+        lines: [
+          "Directory PATH listing for Volume SIGNAL",
+          "Volume Serial Number is 1420-0314",
+          "C:.",
+          "├── COMMAND.COM",
+          "├── README.TXT",
+          "├── SIGNAL.SYS",
+          "└── 1420.DAT",
+        ],
+      };
+    case "scandisk":
+    case "chkdsk":
+      return {
+        lines: [
+          "ScanDisk is checking drive C:...",
+          "",
+          "  655,360 bytes total disk space.",
+          "    1,412 bytes in 1 hidden file.",
+          "   14,200 bytes in 3 user files.",
+          "1,420,000 bytes available on disk.",
+          "",
+          "ScanDisk did not find any errors on this drive.",
+        ],
+      };
+    case "defrag":
+      return {
+        lines: [
+          "Drive C: is 0% fragmented.",
+          "Optimization not necessary. (The dish requires continuous sectors.)",
+        ],
+      };
     default:
       return { lines: ["Bad command or file name"] };
   }
@@ -243,6 +276,8 @@ const OPENS: Record<string, string> = {
   bin: "win-trash",
   "recycle bin": "win-trash",
   credits: "win-credits",
+  computer: "win-computer",
+  "my computer": "win-computer",
 };
 
 const DISABLED = "This program has been disabled to free up bandwidth for the signal.";

@@ -28,6 +28,7 @@ import { createSaver } from "./shell/saver";
 import { createEggs } from "./shell/eggs";
 import { remove } from "./storage";
 import { STORY_KEY } from "./shell/narrative";
+import { osConfirm } from "./shell/dialog";
 import { createDisplayProperties } from "./shell/display";
 import { createNarrative } from "./shell/narrative";
 import {
@@ -155,15 +156,20 @@ async function main() {
   const narrative = createNarrative(desktop);
   const programs = createPrograms(desktop, narrative);
   createEggs(desktop, narrative, programs);
-  createNotepad();
+  createNotepad(desktop);
   const dialup = createDialup({
     onConnected: narrative.connect,
     showWindow: desktop.open,
     hideWindow: desktop.close,
   });
-  (document.getElementById("reset-item") as HTMLElement).onclick = () => {
+  (document.getElementById("reset-item") as HTMLElement).onclick = async () => {
     desktop.closeStart();
-    if (!confirm("Erase every decoded transmission, notes, and story progress to start over?")) return;
+    const proceed = await osConfirm(
+      "Erase every decoded transmission, notes, and story progress to start over?",
+      "Reset Progress",
+      "warn"
+    );
+    if (!proceed) return;
     savedProgress.reset();
     remove(STORY_KEY);
     remove("signal-os-story"); // clean up legacy story key if present

@@ -10,6 +10,8 @@ export interface EggsNarrative {
   emptyBin(): void;
 }
 
+import { osConfirm } from "./dialog";
+
 export interface EggsPrograms {
   runDos(command: string): void;
 }
@@ -102,8 +104,13 @@ export function createEggs(
   const menu = document.getElementById("ctx-bin") as HTMLElement;
   const hideMenu = () => (menu.hidden = true);
 
-  const confirmAndEmpty = () => {
-    if (confirm("Are you sure you want to permanently delete these items?")) {
+  const confirmAndEmpty = async () => {
+    const ok = await osConfirm(
+      "Are you sure you want to permanently delete these items?",
+      "Recycle Bin",
+      "warn"
+    );
+    if (ok) {
       narrative.emptyBin();
     }
   };

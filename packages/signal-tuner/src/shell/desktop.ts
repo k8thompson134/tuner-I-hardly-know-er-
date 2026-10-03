@@ -61,6 +61,7 @@ export function createDesktop({ winamp }: { winamp: WinampHooks }) {
     }
     const win = document.getElementById(id);
     if (win == null) return;
+    win.classList.remove("minimizing");
     win.hidden = false;
     win.dataset.min = "";
     activate(win);
@@ -69,16 +70,55 @@ export function createDesktop({ winamp }: { winamp: WinampHooks }) {
   }
 
   function closeWin(win: HTMLElement) {
+    win.classList.remove("minimizing", "maximized");
     win.hidden = true;
     win.dataset.min = "";
     syncTabs();
   }
 
   function minimizeWin(win: HTMLElement) {
-    win.hidden = true;
-    win.dataset.min = "1";
     win.classList.remove("active");
-    syncTabs();
+    win.classList.add("minimizing");
+    const onEnd = () => {
+      win.removeEventListener("animationend", onEnd);
+      win.classList.remove("minimizing");
+      win.hidden = true;
+      win.dataset.min = "1";
+      syncTabs();
+    };
+    win.addEventListener("animationend", onEnd, { once: true });
+    // Fallback if animation disabled or doesn't fire
+    setTimeout(() => {
+      if (!win.hidden && win.classList.contains("minimizing")) {
+        onEnd();
+      }
+    }, 180);
+  }
+
+  function toggleMaximize(win: HTMLElement) {
+    if (phone.matches) return;
+    if (win.classList.contains("maximized")) {
+      win.classList.remove("maximized");
+      const prev = (win as any)._prevBounds;
+      if (prev) {
+        win.style.left = prev.left;
+        win.style.top = prev.top;
+        win.style.width = prev.width;
+        win.style.height = prev.height;
+      }
+    } else {
+      (win as any)._prevBounds = {
+        left: win.style.left,
+        top: win.style.top,
+        width: win.style.width,
+        height: win.style.height,
+      };
+      win.classList.add("maximized");
+      win.style.left = "0px";
+      win.style.top = "0px";
+      win.style.width = `${desktop.clientWidth}px`;
+      win.style.height = `${desktop.clientHeight}px`;
+    }
   }
 
   // --- Winamp as a taskbar app ---------------------------------------------
@@ -173,6 +213,9 @@ export function createDesktop({ winamp }: { winamp: WinampHooks }) {
     win
       .querySelectorAll<HTMLElement>("[data-min]")
       .forEach((b) => (b.onclick = () => minimizeWin(win)));
+    win
+      .querySelectorAll<HTMLElement>("[data-max]")
+      .forEach((b) => (b.onclick = () => toggleMaximize(win)));
     win.querySelectorAll<HTMLElement>("[data-drag]").forEach((handle) => {
       handle.addEventListener("pointerdown", (e) => {
         if (phone.matches || (e.target as Element).closest("button")) return;
@@ -246,11 +289,28 @@ export function createDesktop({ winamp }: { winamp: WinampHooks }) {
     startMenu.hidden = !open;
     startBtn.classList.toggle("pressed", open);
     startBtn.setAttribute("aria-expanded", String(open));
+    if (open) {
+      const firstItem = startMenu.querySelector<HTMLButtonElement>(".start-item");
+      firstItem?.focus();
+    }
   };
   startBtn.onclick = (e) => {
     e.stopPropagation();
     setStart(startMenu.hidden);
   };
+  startMenu.addEventListener("keydown", (e) => {
+    const items = [...startMenu.querySelectorAll<HTMLButtonElement>(".start-item:not([disabled])")];
+    const idx = items.indexOf(document.activeElement as HTMLButtonElement);
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      const next = idx === -1 || idx === items.length - 1 ? 0 : idx + 1;
+      items[next]?.focus();
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      const prev = idx <= 0 ? items.length - 1 : idx - 1;
+      items[prev]?.focus();
+    }
+  });
   startMenu.querySelectorAll<HTMLElement>("[data-open]").forEach((b) => {
     b.onclick = () => {
       openWin(b.dataset.open ?? "");
@@ -311,6 +371,33 @@ export function createDesktop({ winamp }: { winamp: WinampHooks }) {
     if (e.key === "Escape") {
       setStart(false);
       ctx.hidden = true;
+      // Close win-dialog if open
+      const dlg = document.getElementById("win-dialog");
+      if (dlg && !dlg.hidden) {
+        dlg.hidden = true;
+        return;
+      }
+      // If a dialog or top window is active, close it on Escape
+      const activeWin = windows.find((w) => w.classList.contains("active") && !w.hidden);
+      if (activeWin && (activeWin.classList.contains("dialog") || activeWin.id === "win-display")) {
+        closeWin(activeWin);
+      }
+    } else if (e.altKey && e.key === "F4") {
+      e.preventDefault();
+      const dlg = document.getElementById("win-dialog");
+      if (dlg && !dlg.hidden) {
+        dlg.hidden = true;
+        return;
+      }
+      const activeWin = windows.find((w) => w.classList.contains("active") && !w.hidden);
+      if (activeWin) {
+        closeWin(activeWin);
+      } else if (winampActive && winampState === "open") {
+        winampState = "minimized";
+        winampActive = false;
+        winamp.mount.style.visibility = "hidden";
+        syncTabs();
+      }
     }
   });
 
@@ -323,6 +410,7 @@ export function createDesktop({ winamp }: { winamp: WinampHooks }) {
       const el = document.getElementById(id);
       if (el) Object.assign(el.style, { left: `${left}px`, top: `${top}px` });
     };
+    place("win-computer", 60, 40);
     place("win-trash", w - 300, 40);
     place("win-display", 160, 60);
     place("win-credits", 200, 90);
@@ -348,7 +436,10 @@ export function createDesktop({ winamp }: { winamp: WinampHooks }) {
     notify,
     sync: syncTabs,
     setClock(text: string) {
-      (document.getElementById("clock") as HTMLElement).textContent = text;
+      const clockEl = document.getElementById("clock") as HTMLElement;
+      // Wrap colon in a blink span so it pulses authentically without jitter
+      clockEl.innerHTML = text.replace(":", '<span class="clock-colon">:</span>');
+      clockEl.title = "Wednesday, March 14, 2001";
       (document.getElementById("date-stamp") as HTMLElement).textContent =
         `'01 ${text}`.replace(":", " ");
     },
